@@ -1,13 +1,13 @@
 {
   "name": "拍摄备忘与闹钟提醒",
   "short_name": "拍摄排查",
-  "description": "用于拍摄前准备、分镜计划、设备清点与前夜20:00提醒的暖白极简PWA。",
+  "description": "用于拍摄前准备、分镜计划、设备清点与前夜20:00提醒的复古胶片相纸风PWA。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#faf8f6",
-  "theme_color": "#8b5cf6",
+  "background_color": "#f4e5ea",
+  "theme_color": "#e8c1cd",
   "icons": [
     {
       "src": "./icons/icon-192.svg",

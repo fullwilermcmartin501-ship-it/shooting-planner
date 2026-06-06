@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#8b5cf6">
+  <meta name="theme-color" content="#d7a8b8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="拍摄排查">
@@ -13,668 +13,350 @@
   <link rel="apple-touch-icon" href="./icons/icon-192.svg">
   <style>
     * { box-sizing: border-box; letter-spacing: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { min-height: 100%; background: #faf8f6; color: #1c1917; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; overflow-x: hidden; }
-    button, input, textarea, select { font: inherit; }
-    button { border: 0; touch-action: manipulation; cursor: pointer; }
-    .app-shell { width: min(100%, 430px); margin: 0 auto; min-height: 100vh; padding: 16px 16px max(110px, env(safe-area-inset-bottom)); background: #faf8f6; }
-    .card { background: #fff; border: 1px solid #e7e5e4; border-radius: 8px; box-shadow: 0 1px 2px rgba(28,25,23,.04); }
-    .tiny-card { background: #fff; border: 1px solid #e7e5e4; border-radius: 8px; }
-    .field { width: 100%; border: 1px solid #e7e5e4; border-radius: 8px; background: #fff; padding: 12px 13px; outline: none; transition: border-color .2s, box-shadow .2s; }
-    .field:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.16); }
-    .btn { border-radius: 8px; min-height: 44px; transition: transform .18s, background .18s, border-color .18s, opacity .18s; }
-    .btn:active { transform: scale(.98); }
-    .drawer-backdrop { opacity: 0; pointer-events: none; transition: opacity .25s ease; }
-    .drawer { transform: translateY(105%); transition: transform .34s cubic-bezier(.22,.9,.22,1); }
+    :root {
+      --paper: #f4e5ea;
+      --paper-deep: #ecd2dc;
+      --card: rgba(255, 255, 252, .2);
+      --card-strong: rgba(255, 255, 252, .28);
+      --ink: #5e5a56;
+      --ink-soft: #827d78;
+      --line: rgba(255, 255, 255, .46);
+      --sketch: #e8c1cd;
+      --sketch-deep: #cf95a8;
+      --wash: rgba(232,193,205,.16);
+      --shadow: rgba(154, 117, 130, .12);
+    }
+    html, body { min-height: 100%; margin: 0; background: var(--paper); color: var(--ink); }
+    body { font-family: "Times New Roman", "Songti SC", "Noto Serif SC", "Kaiti SC", "STKaiti", KaiTi, serif; overflow-x: hidden; font-weight: 700; }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .42;
+      background:
+        linear-gradient(180deg, rgba(225,171,188,.42) 0 11%, rgba(255,252,246,.55) 11% 100%),
+        radial-gradient(circle at 18% 20%, rgba(255,255,255,.4), transparent 18%),
+        radial-gradient(circle at 82% 12%, rgba(255,244,238,.28), transparent 20%),
+        radial-gradient(circle at 12px 12px, rgba(255,255,255,.22) 0 1px, transparent 2px),
+        radial-gradient(circle at 30px 28px, rgba(213,157,176,.12) 0 2px, transparent 3px),
+        repeating-linear-gradient(0deg, rgba(190,145,158,.035) 0 1px, transparent 1px 42px),
+        repeating-linear-gradient(90deg, rgba(190,145,158,.03) 0 1px, transparent 1px 39px);
+      background-size: auto, auto, auto, 42px 42px, 58px 58px, auto, auto;
+      mix-blend-mode: multiply;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background:
+        linear-gradient(135deg, transparent 0 46%, rgba(255,245,240,.3) 46% 47%, transparent 47%),
+        radial-gradient(circle at 0 78%, transparent 0 80px, rgba(255,245,240,.36) 81px 83px, transparent 84px),
+        radial-gradient(circle at 100% 76%, transparent 0 84px, rgba(255,245,240,.3) 85px 87px, transparent 88px);
+    }
+    button, input, textarea, select { font: inherit; color: var(--ink); }
+    button { border: 0; cursor: pointer; touch-action: manipulation; background: transparent; }
+    input, textarea, select { border-radius: 0; }
+    .app-shell { width: 100%; max-width: 430px; min-height: 100vh; margin: 0 auto; padding: 18px 16px max(118px, env(safe-area-inset-bottom)); background: transparent; overflow-x: hidden; position: relative; }
+    .paper-card, .paper-btn, .field, .tab-bar, .drawer, .toast, .modal-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.52);
+      box-shadow: 0 22px 42px var(--shadow), inset 0 1px 0 rgba(255,255,255,.72);
+      backdrop-filter: blur(22px) saturate(118%);
+      -webkit-backdrop-filter: blur(22px) saturate(118%);
+    }
+    .paper-card { border-radius: 18px; padding: 16px; position: relative; overflow: hidden; }
+    .paper-card::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      pointer-events: none;
+      border: 1px dashed rgba(224, 181, 194, .34);
+      border-radius: 14px;
+    }
+    .paper-btn { border-radius: 10px; min-height: 46px; padding: 10px 14px; font-weight: 900; transition: transform .16s ease, box-shadow .16s ease, background .16s ease; }
+    .paper-btn:active { transform: translateY(2px); box-shadow: 0 8px 18px rgba(74,68,56,.16), inset 0 1px 0 rgba(255,255,255,.45); }
+    .paper-btn:disabled { opacity: .45; }
+    .purple-btn {
+      background: linear-gradient(180deg, rgba(236,202,213,.95), rgba(218,174,189,.95));
+      color: #5e5a56;
+      border-color: rgba(255,255,255,.3);
+    }
+    .purple-btn * { color: #5e5a56; }
+    .white-btn { background: rgba(255,255,252,.22); color: var(--ink); }
+    .field { width: 100%; border-radius: 10px; padding: 12px; outline: none; font-weight: 800; }
+    .field:focus { outline: 3px solid rgba(232,193,205,.5); outline-offset: 2px; }
+    .muted { color: var(--ink-soft); }
+    .tiny { font-size: 12px; line-height: 18px; }
+    .text-sm { font-size: 14px; line-height: 22px; }
+    .text-lg { font-size: 18px; line-height: 28px; }
+    .title { font-size: 31px; line-height: 37px; font-weight: 900; text-shadow: 0 1px 0 rgba(255,255,255,.48); }
+    .section-title { font-size: 20px; line-height: 28px; font-weight: 900; }
+    .big-count { font-size: 52px; line-height: 1; font-weight: 900; text-align: center; }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .between { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+    .between > * { min-width: 0; }
+    .between .paper-btn { flex-shrink: 0; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .stack > * + * { margin-top: 14px; }
+    .mini-stack > * + * { margin-top: 8px; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.5); border-radius: 999px; padding: 4px 10px; background: rgba(255,255,252,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.66), 0 8px 18px rgba(154,117,130,.1); font-size: 12px; font-weight: 900; }
+    .purple-text { color: var(--sketch-deep); }
+    .progress-track { height: 10px; border: 1px solid rgba(255,255,255,.48); background: rgba(255,255,252,.18); overflow: hidden; border-radius: 999px; }
+    .progress-bar { height: 100%; background: var(--sketch); transition: width .22s ease; }
+    .checked-text { color: #897b6a; text-decoration: line-through; text-decoration-thickness: 2px; }
+    .drawer-backdrop { position: fixed; inset: 0; z-index: 30; background: rgba(99,67,80,.18); opacity: 0; pointer-events: none; transition: opacity .24s ease; }
+    .drawer { position: fixed; inset-inline: 0; bottom: 0; z-index: 40; width: min(100%, 430px); height: 95vh; margin: 0 auto; border-radius: 22px 22px 0 0; overflow: hidden; transform: translateY(105%); transition: transform .3s cubic-bezier(.22,.9,.22,1); background: var(--paper); }
     body.drawer-open { overflow: hidden; }
     body.drawer-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
     body.drawer-open .drawer { transform: translateY(0); }
-    .pop-in { animation: popIn .28s ease both; }
-    @keyframes popIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    .slide-in { animation: slideIn .26s ease both; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .pulse-bubble { animation: bubble 2.2s ease-in-out infinite; }
+    .handle { height: 30px; display: grid; place-items: center; cursor: grab; }
+    .handle-line { width: 54px; height: 6px; border: 1px solid rgba(255,255,255,.46); background: rgba(244,238,224,.56); border-radius: 999px; }
+    .drawer-body { height: calc(95vh - 30px); overflow: hidden; display: flex; flex-direction: column; }
+    .drawer-header { padding: 8px 16px 12px; }
+    .tab-content { flex: 1; overflow-y: auto; padding: 0 16px 110px; }
+    .tab-panel { display: none; animation: panelIn .24s ease both; }
+    .tab-panel.active { display: block; }
+    @keyframes panelIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-bar { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 78px; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); border-left: 0; border-right: 0; border-bottom: 0; box-shadow: 0 -16px 34px rgba(154,117,130,.11); background: rgba(255,255,252,.22); }
+    .tab-btn { display: grid; place-items: center; gap: 4px; min-height: 58px; border-radius: 10px; color: var(--ink-soft); font-size: 12px; font-weight: 900; }
+    .tab-btn span { font-size: 21px; line-height: 1; }
+    .tab-btn.active { color: var(--sketch-deep); background: rgba(236,202,213,.42); border: 1px solid rgba(255,255,255,.52); box-shadow: inset 0 1px 0 rgba(255,255,255,.68), 0 10px 18px rgba(154,117,130,.1); }
+    .fixed-new { position: fixed; left: 50%; bottom: 18px; z-index: 20; width: calc(100% - 32px); max-width: 398px; transform: translateX(-50%); }
+    .top-action { max-width: 112px; padding-inline: 10px; line-height: 16px; white-space: normal; }
+    .install-bubble .section-title { font-size: 18px; line-height: 24px; }
+    .install-bubble .paper-btn { min-width: 68px; padding-inline: 10px; }
+    .notice-text { flex: 1; min-width: 0; }
+    .install-bubble { animation: bubble 2.2s ease-in-out infinite; }
     @keyframes bubble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-    .breath { animation: breath 2.4s ease-in-out infinite; }
-    @keyframes breath { 0%, 100% { box-shadow: 0 0 14px rgba(139,92,246,.34); } 50% { box-shadow: 0 0 28px rgba(139,92,246,.64); } }
-    .toast { transform: translate(-50%, 16px); opacity: 0; pointer-events: none; transition: opacity .24s, transform .24s; }
-    .toast.show { transform: translate(-50%, 0); opacity: 1; }
-    .checked-text { color: #a8a29e; text-decoration: line-through; text-decoration-thickness: 2px; }
-    .progress-shine { background-image: linear-gradient(90deg,#8b5cf6,#a78bfa,#8b5cf6); background-size: 180% 100%; animation: shine 1.8s linear infinite; }
-    @keyframes shine { to { background-position: 180% 0; } }
+    .ready-breath { animation: breath 2.4s ease-in-out infinite; }
+    @keyframes breath { 0%, 100% { box-shadow: 0 16px 34px var(--shadow), 0 0 0 rgba(232,193,205,0); } 50% { box-shadow: 0 16px 34px var(--shadow), 0 0 28px rgba(232,193,205,.55); } }
+    .toast { position: fixed; left: 50%; bottom: 96px; z-index: 60; width: calc(100% - 32px); max-width: 398px; border-radius: 10px; padding: 12px 14px; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; transition: opacity .22s, transform .22s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .overlay { position: fixed; inset: 0; z-index: 55; display: none; place-items: center; padding: 18px; background: rgba(244,229,234,.42); backdrop-filter: blur(18px); }
+    .overlay.show { display: grid; }
+    .modal-card { width: min(100%, 360px); border-radius: 16px; padding: 24px; text-align: center; background: var(--card); animation: modalIn .22s ease both; }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .alarm-ring { animation: ring .7s ease-in-out infinite; }
     @keyframes ring { 0%,100% { transform: rotate(0); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } }
-    .ready-orbit::before, .ready-orbit::after { content: ""; position: absolute; inset: -8px; border: 1px solid rgba(139,92,246,.25); border-radius: 999px; animation: orbit 1.8s ease-in-out infinite; }
-    .ready-orbit::after { inset: -15px; animation-delay: .25s; }
-    @keyframes orbit { 0% { transform: scale(.85); opacity: .9; } 100% { transform: scale(1.18); opacity: 0; } }
-    .fixed { position: fixed; } .relative { position: relative; } .inset-0 { inset: 0; } .inset-x-0 { left: 0; right: 0; }
-    .bottom-0 { bottom: 0; } .bottom-5 { bottom: 20px; } .bottom-24 { bottom: 96px; } .left-1\/2 { left: 50%; }
-    .z-20 { z-index: 20; } .z-30 { z-index: 30; } .z-40 { z-index: 40; } .z-50 { z-index: 50; } .z-\[55\] { z-index: 55; } .z-\[60\] { z-index: 60; }
-    .block { display: block; } .hidden { display: none; } .flex { display: flex; } .grid { display: grid; }
-    .items-start { align-items: flex-start; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .place-items-center { place-items: center; }
-    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .flex-1 { flex: 1 1 0%; } .shrink-0 { flex-shrink: 0; } .min-w-0 { min-width: 0; } .w-full { width: 100%; } .h-full { height: 100%; }
-    .w-2 { width: 8px; } .h-2 { height: 8px; } .w-6 { width: 24px; } .h-6 { height: 24px; } .w-9 { width: 36px; } .h-9 { height: 36px; } .w-10 { width: 40px; } .h-10 { height: 40px; } .w-12 { width: 48px; } .w-14 { width: 56px; } .h-14 { height: 56px; } .w-20 { width: 80px; } .h-20 { height: 80px; }
-    .h-1 { height: 4px; } .h-1\.5 { height: 6px; } .h-8 { height: 32px; } .h-\[95vh\] { height: 95vh; } .h-\[calc\(95vh-32px\)\] { height: calc(95vh - 32px); } .min-h-24 { min-height: 96px; }
-    .w-\[calc\(100\%-32px\)\] { width: calc(100% - 32px); } .max-w-\[360px\] { max-width: 360px; } .max-w-\[398px\] { max-width: 398px; } .max-w-\[430px\] { max-width: 430px; }
-    .-translate-x-1\/2 { transform: translateX(-50%); }
-    .mx-auto { margin-left: auto; margin-right: auto; } .my-5 { margin-top: 20px; margin-bottom: 20px; }
-    .mt-1 { margin-top: 4px; } .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; } .mt-5 { margin-top: 20px; } .mt-6 { margin-top: 24px; }
-    .mb-2 { margin-bottom: 8px; } .mb-3 { margin-bottom: 12px; } .mb-4 { margin-bottom: 16px; } .mb-8 { margin-bottom: 32px; }
-    .p-3 { padding: 12px; } .p-4 { padding: 16px; } .p-5 { padding: 20px; } .p-6 { padding: 24px; } .pb-8 { padding-bottom: 32px; }
-    .px-2\.5 { padding-left: 10px; padding-right: 10px; } .px-3 { padding-left: 12px; padding-right: 12px; } .px-4 { padding-left: 16px; padding-right: 16px; } .px-5 { padding-left: 20px; padding-right: 20px; }
-    .py-1 { padding-top: 4px; padding-bottom: 4px; } .py-2 { padding-top: 8px; padding-bottom: 8px; } .py-3 { padding-top: 12px; padding-bottom: 12px; } .py-5 { padding-top: 20px; padding-bottom: 20px; }
-    .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .space-y-2 > * + * { margin-top: 8px; } .space-y-3 > * + * { margin-top: 12px; }
-    .overflow-hidden { overflow: hidden; } .overflow-y-auto { overflow-y: auto; } .resize-none { resize: none; } .cursor-grab { cursor: grab; }
-    .rounded-md { border-radius: 6px; } .rounded-lg { border-radius: 8px; } .rounded-xl { border-radius: 12px; } .rounded-full { border-radius: 999px; } .rounded-t-2xl { border-top-left-radius: 16px; border-top-right-radius: 16px; }
-    .border { border: 1px solid #e7e5e4; } .border-2 { border: 2px solid #e7e5e4; } .border-stone-200 { border-color: #e7e5e4; } .border-stone-300 { border-color: #d6d3d1; } .border-purple-200 { border-color: #ddd6fe; } .border-purple-300 { border-color: #c4b5fd; } .border-emerald-200 { border-color: #a7f3d0; }
-    .bg-paper { background: #faf8f6; } .bg-white { background: #fff; } .bg-white\/55 { background: rgba(255,255,255,.55); } .bg-white\/95 { background: rgba(255,255,255,.95); }
-    .bg-stone-50 { background: #fafaf9; } .bg-stone-50\/60 { background: rgba(250,250,249,.6); } .bg-stone-100 { background: #f5f5f4; } .bg-stone-300\/80 { background: rgba(214,211,209,.8); } .bg-stone-950\/25 { background: rgba(12,10,9,.25); } .bg-stone-950\/45 { background: rgba(12,10,9,.45); }
-    .bg-purple-50 { background: #f5f3ff; } .bg-purple-100 { background: #ede9fe; } .bg-purple-600 { background: #8b5cf6; } .bg-emerald-50 { background: #ecfdf5; } .bg-amber-100 { background: #fef3c7; } .bg-red-100 { background: #fee2e2; }
-    .text-left { text-align: left; } .text-center { text-align: center; } .break-words { overflow-wrap: break-word; }
-    .text-\[11px\] { font-size: 11px; } .text-xs { font-size: 12px; line-height: 16px; } .text-sm { font-size: 14px; line-height: 20px; } .text-base { font-size: 16px; line-height: 24px; } .text-lg { font-size: 18px; line-height: 28px; } .text-xl { font-size: 20px; line-height: 28px; } .text-2xl { font-size: 24px; line-height: 32px; } .text-4xl { font-size: 36px; line-height: 40px; } .text-5xl { font-size: 48px; line-height: 1; }
-    .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; } .font-black { font-weight: 900; }
-    .leading-5 { line-height: 20px; } .leading-6 { line-height: 24px; } .leading-8 { line-height: 32px; } .leading-none { line-height: 1; }
-    .text-white { color: #fff; } .text-transparent { color: transparent; } .text-purple-600 { color: #8b5cf6; } .text-purple-700 { color: #7e22ce; } .text-stone-400 { color: #a8a29e; } .text-stone-500 { color: #78716c; } .text-stone-600 { color: #57534e; } .text-stone-700 { color: #44403c; } .text-stone-800 { color: #292524; } .text-stone-900 { color: #1c1917; } .text-emerald-700 { color: #047857; } .text-amber-700 { color: #b45309; } .text-red-700 { color: #b91c1c; }
-    .shadow-sm { box-shadow: 0 1px 2px rgba(28,25,23,.04); } .shadow-glow { box-shadow: 0 0 20px rgba(139,92,246,.45); } .shadow-soft { box-shadow: 0 18px 45px rgba(28,25,23,.08); }
-    .backdrop-blur, .backdrop-blur-\[2px\] { backdrop-filter: blur(2px); } .backdrop-blur-sm { backdrop-filter: blur(4px); } .backdrop-blur-xl { backdrop-filter: blur(24px); }
-    .transition { transition: transform .18s, opacity .18s, background .18s, border-color .18s; } .active\:scale-\[\.99\]:active { transform: scale(.99); }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    .color-chip { height: 54px; border: 1px solid rgba(255,255,255,.46); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 10px 18px rgba(74,68,56,.16); border-radius: 10px; }
+    .delete-btn { width: 42px; min-width: 42px; height: 42px; padding: 0; display: grid; place-items: center; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+    @media (max-width: 430px) {
+      .app-shell { width: 100vw; padding-left: 10px; padding-right: 14px; }
+      .paper-card { padding: 14px; }
+      .title { font-size: 28px; line-height: 34px; }
+      .section-title { font-size: 18px; line-height: 26px; }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .fixed-new { width: calc(100vw - 24px); }
+      .install-bubble .between { display: grid; grid-template-columns: 1fr 72px; }
+      .install-bubble .paper-btn { min-width: 0; width: 72px; }
     }
   </style>
 </head>
 <body>
   <main class="app-shell">
-    <header class="mb-4">
-      <section id="installGuide" class="pulse-bubble mb-4 hidden rounded-lg border border-purple-200 bg-white px-4 py-3 shadow-sm">
-        <div class="flex items-start gap-3">
-          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-purple-100 text-lg text-purple-600">↥</div>
-          <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-stone-900">安装到手机桌面</p>
-            <p id="installText" class="mt-1 text-xs leading-5 text-stone-500">打开浏览器菜单，选择“添加到主屏幕”。</p>
+    <header class="stack">
+      <section id="installGuide" class="paper-card install-bubble" hidden>
+        <div class="between">
+          <div class="row">
+            <div class="badge">↥</div>
+            <div>
+              <div class="section-title">安装到手机桌面</div>
+              <div id="installText" class="text-sm muted">点击右侧按钮，即可安装成桌面 App。</div>
+            </div>
           </div>
-          <button id="installBtn" class="btn hidden bg-purple-600 px-3 text-xs font-semibold text-white">安装</button>
+          <button id="installBtn" class="paper-btn purple-btn">安装</button>
         </div>
       </section>
-
-      <div class="flex items-center justify-between gap-3">
+      <div class="between">
         <div>
-          <p class="text-xs font-semibold text-purple-600">Warm White Shooting Planner</p>
-          <h1 class="mt-1 text-2xl font-black text-stone-900">拍摄备忘与排查</h1>
+          <div class="tiny purple-text">POLAROID SHOOTING PLANNER</div>
+          <h1 class="title" style="margin:4px 0 0;">拍摄备忘与排查</h1>
         </div>
-        <button id="testAlarmBtn" class="btn border border-purple-200 bg-white px-3 text-xs font-bold text-purple-600 shadow-sm">测试铃声与权限</button>
+        <button id="testAlarmBtn" class="paper-btn white-btn tiny top-action">测试铃声与权限</button>
       </div>
-      <p class="mt-2 text-sm leading-6 text-stone-500">分镜、天气、装备清单和前夜20:00提醒，集中放进一个手机小工具里。</p>
+      <section class="paper-card">
+        <div class="row">
+          <span class="badge purple-text">!</span>
+          <p class="text-sm muted notice-text" style="margin:0;">网页提醒在 App 打开、后台仍存活时最稳定。重要拍摄建议再设一个手机系统闹钟。</p>
+        </div>
+      </section>
     </header>
-
-    <section class="card mb-4 p-3">
-      <div class="flex items-start gap-3">
-        <div class="mt-1 h-2 w-2 rounded-full bg-purple-600 shadow-glow"></div>
-        <p class="text-xs leading-5 text-stone-500">网页提醒在 App 打开、后台仍存活时最稳定。若手机把浏览器完全关掉，系统可能拦截响铃；重要拍摄建议再设一个手机系统闹钟。</p>
-      </div>
-    </section>
-
-    <section id="shootList" class="space-y-3"></section>
+    <section id="shootList" class="stack" style="margin-top:16px;"></section>
   </main>
 
-  <button id="newShootBtn" class="btn fixed bottom-5 left-1/2 z-20 flex h-14 w-[calc(100%-32px)] max-w-[398px] -translate-x-1/2 items-center justify-center gap-2 bg-purple-600 font-bold text-white shadow-glow">
-    <span class="text-xl leading-none">＋</span><span>新建拍摄</span>
-  </button>
+  <button id="newShootBtn" class="paper-btn purple-btn fixed-new"><span style="font-size:20px;">＋</span> 新建拍摄</button>
 
-  <div class="drawer-backdrop fixed inset-0 z-30 bg-stone-950/25 backdrop-blur-[2px]"></div>
-  <aside id="drawer" class="drawer fixed inset-x-0 bottom-0 z-40 mx-auto h-[95vh] w-full max-w-[430px] overflow-hidden rounded-t-2xl border border-stone-200 bg-paper shadow-soft">
-    <div id="drawerHandle" class="flex h-8 cursor-grab items-center justify-center">
-      <div class="h-1 w-12 rounded-full bg-stone-300/80"></div>
-    </div>
-    <div id="drawerContent" class="h-[calc(95vh-32px)] overflow-y-auto px-4 pb-8"></div>
+  <div class="drawer-backdrop"></div>
+  <aside id="drawer" class="drawer">
+    <div id="drawerHandle" class="handle"><div class="handle-line"></div></div>
+    <div id="drawerContent" class="drawer-body"></div>
   </aside>
 
-  <section id="alarmOverlay" class="fixed inset-0 z-50 hidden place-items-center bg-stone-950/45 p-4 backdrop-blur-sm">
-    <div class="alarm-ring w-full max-w-[360px] rounded-xl border border-purple-200 bg-white p-5 text-center shadow-soft">
-      <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-purple-100 text-2xl text-purple-600">🔔</div>
-      <h2 class="mt-4 text-xl font-black text-stone-900">前夜20:00排查提醒</h2>
-      <p id="alarmText" class="mt-2 text-sm leading-6 text-stone-600"></p>
-      <div class="mt-5 grid grid-cols-2 gap-3">
-        <button id="ackAlarmBtn" class="btn border border-stone-200 bg-white font-bold text-stone-700">我知道了</button>
-        <button id="goCheckBtn" class="btn bg-purple-600 font-bold text-white">去排查</button>
+  <section id="alarmOverlay" class="overlay">
+    <div class="modal-card alarm-ring">
+      <div class="badge" style="margin:auto; width:64px; height:64px; font-size:28px;">🔔</div>
+      <h2 class="section-title">前夜20:00排查提醒</h2>
+      <p id="alarmText" class="text-sm muted"></p>
+      <div class="grid-2">
+        <button id="ackAlarmBtn" class="paper-btn white-btn">我知道了</button>
+        <button id="goCheckBtn" class="paper-btn purple-btn">去排查</button>
       </div>
     </div>
   </section>
 
-  <section id="readyModal" class="fixed inset-0 z-[55] hidden place-items-center bg-white/55 p-4 backdrop-blur-xl">
-    <div class="pop-in w-full max-w-[360px] rounded-xl border border-purple-200 bg-white p-6 text-center shadow-soft">
-      <div class="ready-orbit relative mx-auto grid h-20 w-20 place-items-center rounded-full bg-purple-100 text-4xl text-purple-600">📷</div>
-      <h2 class="mt-6 text-2xl font-black leading-8 text-stone-900">🎉 太棒啦！全部准备好啦！</h2>
-      <p class="mt-3 text-sm leading-6 text-stone-600">等待出发！预祝拍摄顺利～</p>
-      <button id="closeReadyBtn" class="btn mt-6 w-full bg-purple-600 font-black text-white shadow-glow">冲！</button>
+  <section id="readyModal" class="overlay">
+    <div class="modal-card">
+      <div class="badge" style="margin:auto; width:76px; height:76px; font-size:34px;">📷</div>
+      <h2 class="section-title">🎉 太棒啦！全部准备好啦！</h2>
+      <p class="text-sm muted">等待出发！预祝拍摄顺利～</p>
+      <button id="closeReadyBtn" class="paper-btn purple-btn" style="width:100%;">冲！</button>
     </div>
   </section>
 
-  <div id="toast" class="toast fixed bottom-24 left-1/2 z-[60] w-[calc(100%-32px)] max-w-[398px] rounded-lg border border-purple-200 bg-white/95 px-4 py-3 text-sm font-semibold text-stone-800 shadow-soft backdrop-blur"></div>
+  <div id="toast" class="toast"></div>
 
   <script>
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
-    const storeKey = "warmShootPlanner.v2";
-    const firedKey = "warmShootPlanner.fired.v2";
+    const storeKey = "warmShootPlanner.v4.polaroid";
+    const oldStoreKey = "warmShootPlanner.v2";
+    const firedKey = "warmShootPlanner.fired.v4";
     const weekdays = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
-
-    const defaultShoots = [
-      {
-        id: uid(),
-        title: "复古人像外拍",
-        date: nextDate(2),
-        startTime: "16:30",
-        prepTime: "14:30",
-        leaveTime: "15:20",
-        place: "滨江公园3号门",
-        weather: { temp: 30, rain: 18, wind: 12, cloud: 35, risk: "低" },
-        storyboards: [{ id: uid(), shot: "中景", move: "跟", text: "模特沿河堤慢走，夕阳从侧后方扫过发丝，镜头保持柔和推进。" }],
-        charge: ["相机电池","监视器电池","补光灯","无线麦克风"].map((text) => ({ id: uid(), text, done: false })),
-        pack: ["主机","35mm镜头","反光板","服装","合同"].map((text) => ({ id: uid(), text, done: false }))
-      }
-    ];
-
-    let shoots = loadShoots();
-    let currentId = shoots[0]?.id || "";
-    let alarmTimers = [];
-    let audioCtx = null;
-    let alarmNodes = [];
-    let deferredPrompt = null;
-
-    const shootList = $("#shootList");
-    const drawerContent = $("#drawerContent");
-    const toast = $("#toast");
-    const alarmOverlay = $("#alarmOverlay");
-    const alarmText = $("#alarmText");
-
-    renderList();
-    bindGlobalEvents();
-    registerPwa();
-    setupInstallGuide();
-    scheduleReminders();
-    checkDueAlarms();
-    setInterval(checkDueAlarms, 15000);
-    setInterval(renderCountdownOnly, 1000);
+    const defaultShoots = [{
+      id: uid(), title: "复古人像外拍", date: nextDate(2), startTime: "16:30", prepTime: "14:30", leaveTime: "15:20", place: "滨江公园3号门",
+      weather: { temp: 30, rain: 18, wind: 12, cloud: 35, risk: "低" },
+      storyboards: [{ id: uid(), shot: "中景", move: "跟", text: "模特沿河堤慢走，夕阳从侧后方扫过发丝，镜头保持柔和推进。" }],
+      charge: ["相机电池","监视器电池","补光灯","无线麦克风"].map((text) => ({ id: uid(), text, done: false })),
+      pack: ["主机","35mm镜头","反光板","服装","合同"].map((text) => ({ id: uid(), text, done: false })),
+      inspiration: { colors: ["#e8c1cd", "#f4e5ea", "#5e5a56"], pose: "下巴微收，肩膀放松，眼神先看远处再回镜头。", params: "分镜1：F1.4 | 1/200s | ISO100 | 35mm" }
+    }];
+    let shoots = loadShoots(), currentId = shoots[0]?.id || "", activeTab = "schedule", alarmTimers = [], audioCtx = null, alarmNodes = [], deferredPrompt = null;
+    renderList(); bindGlobalEvents(); registerPwa(); setupInstallGuide(); scheduleReminders(); checkDueAlarms();
+    setInterval(checkDueAlarms, 15000); setInterval(renderCountdownOnly, 1000);
 
     function bindGlobalEvents() {
       $("#newShootBtn").addEventListener("click", openCreateDrawer);
       $(".drawer-backdrop").addEventListener("click", closeDrawer);
-      $("#testAlarmBtn").addEventListener("click", async () => {
-        await requestPermissions();
-        startAlarmSound();
-        showToast("铃声测试已开始，3秒后自动停止。");
-        setTimeout(stopAlarmSound, 3000);
-      });
+      $("#testAlarmBtn").addEventListener("click", async () => { await requestPermissions(); startAlarmSound(); showToast("铃声测试已开始，3秒后自动停止。"); setTimeout(stopAlarmSound, 3000); });
       $("#ackAlarmBtn").addEventListener("click", stopAlarmAndOverlay);
-      $("#goCheckBtn").addEventListener("click", () => {
-        stopAlarmAndOverlay();
-        openDetail(currentId);
-        setTimeout(() => $("#gearSection")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
-      });
-      $("#closeReadyBtn").addEventListener("click", () => $("#readyModal").classList.add("hidden"));
-
+      $("#goCheckBtn").addEventListener("click", () => { stopAlarmAndOverlay(); activeTab = "gear"; openDetail(currentId); });
+      $("#closeReadyBtn").addEventListener("click", () => $("#readyModal").classList.remove("show"));
       let startY = 0;
       $("#drawerHandle").addEventListener("touchstart", (event) => { startY = event.touches[0].clientY; }, { passive: true });
-      $("#drawerHandle").addEventListener("touchend", (event) => {
-        if (event.changedTouches[0].clientY - startY > 45) closeDrawer();
-      });
+      $("#drawerHandle").addEventListener("touchend", (event) => { if (event.changedTouches[0].clientY - startY > 45) closeDrawer(); });
     }
 
     function renderList() {
-      if (!shoots.length) {
-        shootList.innerHTML = `<section class="card p-5 text-center text-sm text-stone-500">还没有拍摄计划，点击底部按钮新建一个。</section>`;
-        return;
-      }
-      shootList.innerHTML = shoots.map((shoot) => {
-        const progress = getGearProgress(shoot);
-        const next = new Date(`${shoot.date}T${shoot.startTime}:00`);
-        return `
-          <button class="card block w-full p-4 text-left transition active:scale-[.99]" data-open="${shoot.id}">
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0">
-                <p class="text-xs font-bold text-purple-600">${formatDate(next)} · ${shoot.place || "未填写地点"}</p>
-                <h2 class="mt-1 break-words text-lg font-black text-stone-900">${escapeHtml(shoot.title)}</h2>
-              </div>
-              <span class="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-600">${progress.percent}%</span>
-            </div>
-            <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-stone-100">
-              <div class="h-full rounded-full progress-shine" style="width:${progress.percent}%"></div>
-            </div>
-            <p class="mt-3 text-xs text-stone-500">前夜20:00提醒：${formatAlarmTime(shoot)}</p>
-          </button>
-        `;
+      const list = $("#shootList");
+      if (!shoots.length) { list.innerHTML = `<section class="paper-card text-sm muted">还没有拍摄计划，点击底部按钮新建一个。</section>`; return; }
+      list.innerHTML = shoots.map((shoot) => {
+        const progress = getGearProgress(shoot), next = new Date(`${shoot.date}T${shoot.startTime}:00`);
+        return `<button class="paper-card" style="width:100%; text-align:left;" data-open="${shoot.id}">
+          <div class="between"><div><div class="tiny purple-text">${formatDate(next)} · ${escapeHtml(shoot.place || "未填写地点")}</div><div class="section-title">${escapeHtml(shoot.title)}</div></div><span class="badge purple-text">${progress.percent}%</span></div>
+          <div class="progress-track" style="margin-top:14px;"><div class="progress-bar" style="width:${progress.percent}%"></div></div>
+          <div class="tiny muted" style="margin-top:12px;">前夜20:00提醒：${formatAlarmTime(shoot)}</div>
+        </button>`;
       }).join("");
-      $$("[data-open]", shootList).forEach((button) => button.addEventListener("click", () => openDetail(button.dataset.open)));
+      $$("[data-open]", list).forEach((button) => button.addEventListener("click", () => { activeTab = "schedule"; openDetail(button.dataset.open); }));
     }
 
     function openCreateDrawer() {
-      drawerContent.innerHTML = `
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-xl font-black text-stone-900">新建拍摄</h2>
-          <button class="btn h-10 w-10 border border-stone-200 bg-white text-xl text-stone-500" data-close>×</button>
-        </div>
-        <form id="createForm" class="space-y-3">
-          ${input("主题", "title", "例如：咖啡店产品短片", "text")}
-          ${input("拍摄日期", "date", "", "date", nextDate(1))}
-          ${input("开拍时间", "startTime", "", "time", "09:30")}
-          ${input("开始准备", "prepTime", "", "time", "07:30")}
-          ${input("出门时间", "leaveTime", "", "time", "08:20")}
-          ${input("地点", "place", "例如：山谷咖啡二楼窗边", "text")}
-          <button class="btn w-full bg-purple-600 font-bold text-white">保存拍摄</button>
-        </form>
-      `;
+      $("#drawerContent").innerHTML = `<div class="drawer-header between"><div class="section-title">新建拍摄</div><button class="paper-btn white-btn delete-btn" data-close>×</button></div>
+        <div class="tab-content"><form id="createForm" class="stack">${input("主题", "title", "例如：咖啡店产品短片", "text")}${input("拍摄日期", "date", "", "date", nextDate(1))}${input("开拍时间", "startTime", "", "time", "09:30")}${input("开始准备", "prepTime", "", "time", "07:30")}${input("出门时间", "leaveTime", "", "time", "08:20")}${input("地点", "place", "例如：山谷咖啡二楼窗边", "text")}<button class="paper-btn purple-btn" style="width:100%;">保存拍摄</button></form></div>`;
       openDrawer();
-      $("[data-close]", drawerContent).addEventListener("click", closeDrawer);
+      $("[data-close]", $("#drawerContent")).addEventListener("click", closeDrawer);
       $("#createForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
-        const shoot = {
-          id: uid(),
-          title: clean(form.get("title")) || "未命名拍摄",
-          date: form.get("date"),
-          startTime: form.get("startTime"),
-          prepTime: form.get("prepTime"),
-          leaveTime: form.get("leaveTime"),
-          place: clean(form.get("place")),
-          weather: mockWeather(),
-          storyboards: [{ id: uid(), shot: "中景", move: "", text: "" }],
-          charge: ["相机电池","监视器电池","补光灯","无线麦克风"].map((text) => ({ id: uid(), text, done: false })),
-          pack: ["主机","镜头","反光板","服装","合同"].map((text) => ({ id: uid(), text, done: false }))
-        };
-        shoots.unshift(shoot);
-        currentId = shoot.id;
-        saveShoots();
-        await requestPermissions();
-        scheduleReminders();
-        renderList();
-        openDetail(shoot.id);
-        showToast("已保存，并设置前夜20:00提醒。");
+        const shoot = { id: uid(), title: clean(form.get("title")) || "未命名拍摄", date: form.get("date"), startTime: form.get("startTime"), prepTime: form.get("prepTime"), leaveTime: form.get("leaveTime"), place: clean(form.get("place")), weather: mockWeather(), storyboards: [{ id: uid(), shot: "中景", move: "", text: "" }], charge: ["相机电池","监视器电池","补光灯","无线麦克风"].map((text) => ({ id: uid(), text, done: false })), pack: ["主机","镜头","反光板","服装","合同"].map((text) => ({ id: uid(), text, done: false })), inspiration: { colors: ["#e8c1cd", "#f4e5ea", "#5e5a56"], pose: "", params: "" } };
+        shoots.unshift(shoot); currentId = shoot.id; saveShoots(); await requestPermissions(); renderList(); activeTab = "schedule"; openDetail(shoot.id); showToast("已保存，并设置前夜20:00提醒。");
       });
     }
 
-    function openDetail(id) {
-      currentId = id;
-      const shoot = getCurrent();
-      if (!shoot) return;
-      drawerContent.innerHTML = detailTemplate(shoot);
-      openDrawer();
-      bindDetailEvents();
-      renderCountdownOnly();
-    }
-
+    function openDetail(id) { currentId = id; const shoot = getCurrent(); if (!shoot) return; ensureInspiration(shoot); $("#drawerContent").innerHTML = detailTemplate(shoot); openDrawer(); bindDetailEvents(); renderCountdownOnly(); }
     function detailTemplate(shoot) {
+      return `<div class="drawer-header"><div class="between"><div><div class="tiny purple-text">${escapeHtml(shoot.place || "未填写地点")}</div><div class="section-title">${escapeHtml(shoot.title)}</div></div><button class="paper-btn white-btn delete-btn" data-close>×</button></div></div>
+        <div class="tab-content"><section class="tab-panel ${activeTab === "schedule" ? "active" : ""}" data-panel="schedule">${schedulePanel(shoot)}</section><section class="tab-panel ${activeTab === "storyboard" ? "active" : ""}" data-panel="storyboard">${storyboardPanel(shoot)}</section><section class="tab-panel ${activeTab === "gear" ? "active" : ""}" data-panel="gear">${gearPanel(shoot)}</section><section class="tab-panel ${activeTab === "inspiration" ? "active" : ""}" data-panel="inspiration">${inspirationPanel(shoot)}</section></div>
+        <nav class="tab-bar">${tabButton("schedule", "⏰", "档期")}${tabButton("storyboard", "🎬", "分镜")}${tabButton("gear", "🎒", "装备")}${tabButton("inspiration", "🎨", "灵感")}</nav>`;
+    }
+    function tabButton(tab, icon, label) { return `<button class="tab-btn ${activeTab === tab ? "active" : ""}" data-tab="${tab}"><span>${icon}</span>${label}</button>`; }
+    function schedulePanel(shoot) {
       const date = new Date(`${shoot.date}T${shoot.startTime}:00`);
-      const progress = getGearProgress(shoot);
-      return `
-        <div class="mb-4 flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-xs font-bold text-purple-600">${escapeHtml(formatDate(date))} · ${weekdays[date.getDay()]}</p>
-            <h2 class="break-words text-xl font-black text-stone-900">${escapeHtml(shoot.title)}</h2>
-          </div>
-          <button class="btn h-10 w-10 border border-stone-200 bg-white text-xl text-stone-500" data-close>×</button>
-        </div>
-        <section class="card mb-4 p-4">
-          <p class="text-sm font-bold text-stone-500">今日拍摄与准备倒计时</p>
-          <p class="mt-1 text-xs text-stone-400">下一场拍摄倒计时</p>
-          <div id="countdown" class="my-5 text-center text-5xl font-black text-stone-900">--:--:--</div>
-          <p class="mb-3 text-center text-sm text-stone-500">建议${shoot.prepTime}开始准备，${shoot.leaveTime}出门</p>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="tiny-card p-3 text-center"><p class="text-xs text-stone-500">开始准备</p><p class="mt-1 text-lg font-black text-stone-900">${shoot.prepTime}</p></div>
-            <div class="tiny-card p-3 text-center"><p class="text-xs text-stone-500">出门</p><p class="mt-1 text-lg font-black text-stone-900">${shoot.leaveTime}</p></div>
-          </div>
-        </section>
-        ${weatherTemplate(shoot)}
-        <section class="card mb-4 p-4">
-          <div class="mb-3 flex items-center justify-between">
-            <h3 class="text-lg font-black text-stone-900">🎬 创意纯分镜计划</h3>
-          </div>
-          <div id="storyboardList" class="space-y-3">${shoot.storyboards.map(storyboardCard).join("")}</div>
-          <button id="addStoryboardBtn" class="btn mt-3 w-full border border-purple-300 bg-white font-bold text-purple-600">➕ 添加新分镜</button>
-        </section>
-        <section id="gearSection" class="card mb-4 p-4">
-          <div class="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <h3 class="text-lg font-black text-stone-900">🎒 明日拍摄装备与道具排查</h3>
-              <p class="mt-1 text-xs text-stone-500">检查进度：${progress.done}/${progress.total}</p>
-            </div>
-            <span class="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-600">${progress.percent}%</span>
-          </div>
-          <div class="mb-4 h-1.5 overflow-hidden rounded-full bg-stone-100 shadow-glow">
-            <div class="h-full rounded-full progress-shine" style="width:${progress.percent}%"></div>
-          </div>
-          ${progress.percent === 100 ? `<div class="pop-in mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">☑️ 装备道具已全部带齐，无遗漏！</div>` : ""}
-          ${gearGroup("🔋 前夜20:00充电清单", "charge", shoot.charge)}
-          ${gearGroup("🎒 出发前打包清点", "pack", shoot.pack)}
-        </section>
-        <section class="mb-8">
-          <button id="readyBtn" class="btn breath w-full rounded-xl bg-purple-600 px-5 py-5 text-lg font-black text-white">✨ 确认全部准备就绪！</button>
-        </section>
-      `;
+      return `<div class="stack">${weatherPanel(shoot)}<section class="paper-card"><div class="between"><div><div class="tiny purple-text">${formatDate(date)} · ${weekdays[date.getDay()]}</div><div class="section-title">今日拍摄与准备倒计时</div></div><span class="badge">⏰</span></div><div id="countdown" class="big-count" style="margin:24px 0;">--:--:--</div><p class="text-sm muted" style="text-align:center;">建议${shoot.prepTime}开始准备，${shoot.leaveTime}出门</p><div class="grid-2"><div class="paper-card"><div class="tiny muted">开始准备</div><div class="section-title">${shoot.prepTime}</div></div><div class="paper-card"><div class="tiny muted">出门</div><div class="section-title">${shoot.leaveTime}</div></div></div></section></div>`;
     }
-
-    function weatherTemplate(shoot) {
-      const w = shoot.weather;
-      const riskClass = w.risk === "高" ? "bg-red-100 text-red-700" : w.risk === "中" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
-      const advice = w.wind > 15
-        ? "风速超过15km/h，轻量三脚架要加配重，无人机建议等风稳后再飞。"
-        : w.rain > 50
-          ? "降雨概率偏高，建议带防水袋，并准备室内备用机位。"
-          : "自然条件稳定，适合优先拍逆光氛围镜头和人物特写。";
-      return `
-        <section class="card mb-4 p-4">
-          <div class="mb-3 flex items-center justify-between">
-            <h3 class="text-lg font-black text-stone-900">天气判断与自然条件</h3>
-            <span class="rounded-full px-2.5 py-1 text-xs font-black ${riskClass}">风险：${w.risk}</span>
-          </div>
-          <div class="grid grid-cols-4 gap-2 text-center">
-            ${metric(`${w.temp}°C`, "温度")}
-            ${metric(`${w.rain}%`, "降雨")}
-            ${metric(`${w.wind}`, "km/h风速")}
-            ${metric(`${w.cloud}%`, "云量")}
-          </div>
-          <div class="mt-4 grid gap-2 text-sm text-stone-600">
-            <p><b class="text-stone-900">Sunrise/Sunset：</b>06:02 / 19:08</p>
-            <p><b class="text-stone-900">Golden Hour：</b>06:10-07:05，18:12-19:02</p>
-            <p><b class="text-stone-900">Blue Hour：</b>05:35-05:58，19:12-19:38</p>
-          </div>
-          <p class="mt-4 rounded-lg bg-purple-50 px-3 py-2 text-sm leading-6 text-purple-700">AI增强拍摄建议：${advice}</p>
-        </section>
-      `;
+    function weatherPanel(shoot) {
+      const w = shoot.weather, advice = w.wind > 15 ? "风速偏高，三脚架加配重，无人机等风稳后再飞。" : w.rain > 50 ? "降雨概率偏高，带防水袋，并准备室内备用机位。" : "自然条件稳定，适合优先拍逆光氛围镜头和人物特写。";
+      return `<section class="paper-card"><div class="between"><div class="section-title">天气判断与自然条件</div><span class="badge purple-text">风险：${w.risk}</span></div><div class="grid-4" style="margin-top:14px;">${metric(`${w.temp}°C`, "温度")}${metric(`${w.rain}%`, "降雨")}${metric(`${w.wind}`, "风速")}${metric(`${w.cloud}%`, "云量")}</div><div class="text-sm mini-stack" style="margin-top:14px;"><p><b>Sunrise/Sunset：</b>06:02 / 19:08</p><p><b>Golden Hour：</b>06:10-07:05，18:12-19:02</p><p><b>Blue Hour：</b>05:35-05:58，19:12-19:38</p></div><p class="text-sm" style="margin:14px 0 0;">AI增强拍摄建议：${advice}</p></section>`;
     }
-
-    function bindDetailEvents() {
-      $("[data-close]", drawerContent)?.addEventListener("click", closeDrawer);
-      $("#readyBtn")?.addEventListener("click", () => {
-        const progress = getGearProgress(getCurrent());
-        if (progress.percent < 100) return showToast("您的清单还没排查完哦，先检查一下吧～");
-        $("#readyModal").classList.remove("hidden");
-        $("#readyModal").classList.add("grid");
-      });
-      $("#addStoryboardBtn")?.addEventListener("click", () => {
-        const shoot = getCurrent();
-        shoot.storyboards.push({ id: uid(), shot: "中景", move: "", text: "" });
-        saveShoots();
-        openDetail(shoot.id);
-        setTimeout(() => $("#storyboardList article:last-child")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
-      });
-      $$("[data-delete-board]", drawerContent).forEach((button) => button.addEventListener("click", () => {
-        const shoot = getCurrent();
-        if (shoot.storyboards.length <= 1) return showToast("至少保留一个分镜。");
-        shoot.storyboards = shoot.storyboards.filter((item) => item.id !== button.dataset.deleteBoard);
-        saveShoots();
-        openDetail(shoot.id);
-      }));
-      $$("[data-board-field]", drawerContent).forEach((field) => field.addEventListener("input", () => {
-        const shoot = getCurrent();
-        const item = shoot.storyboards.find((board) => board.id === field.dataset.id);
-        if (!item) return;
-        item[field.dataset.boardField] = field.value;
-        saveShoots(false);
-      }));
-      $$("[data-toggle-item]", drawerContent).forEach((button) => button.addEventListener("click", () => {
-        const shoot = getCurrent();
-        const group = button.dataset.group;
-        const item = shoot[group].find((entry) => entry.id === button.dataset.toggleItem);
-        if (!item) return;
-        item.done = !item.done;
-        saveShoots();
-        openDetail(shoot.id);
-        renderList();
-      }));
-      $$("[data-add-item]", drawerContent).forEach((form) => form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const shoot = getCurrent();
-        const group = form.dataset.addItem;
-        const input = $("input", form);
-        const text = clean(input.value);
-        if (!text) return;
-        shoot[group].push({ id: uid(), text, done: false });
-        saveShoots();
-        openDetail(shoot.id);
-      }));
-    }
-
+    function storyboardPanel(shoot) { return `<div class="stack"><section class="paper-card"><div class="between"><div class="section-title">🎬 创意纯分镜计划</div><span class="badge purple-text">${shoot.storyboards.length}个</span></div></section><div id="storyboardList" class="stack">${shoot.storyboards.map(storyboardCard).join("")}</div><button id="addStoryboardBtn" class="paper-btn white-btn" style="width:100%;">➕ 添加新分镜</button></div>`; }
     function storyboardCard(item, index) {
-      return `
-        <article class="slide-in rounded-lg border border-stone-200 bg-stone-50/60 p-3">
-          <div class="mb-3 flex items-center justify-between">
-            <h4 class="font-black text-stone-900">分镜 #${index + 1}</h4>
-            <button class="btn h-9 w-9 bg-purple-100 text-purple-600" data-delete-board="${item.id}" title="删除">🗑</button>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <label class="text-xs font-bold text-stone-500">景别
-              <select class="field mt-1 py-2" data-id="${item.id}" data-board-field="shot">
-                ${["特写","近景","中景","远景","全景"].map((name) => `<option ${item.shot === name ? "selected" : ""}>${name}</option>`).join("")}
-              </select>
-            </label>
-            <label class="text-xs font-bold text-stone-500">运镜
-              <input class="field mt-1 py-2" data-id="${item.id}" data-board-field="move" value="${escapeAttr(item.move)}" placeholder="推、拉、摇、移、跟">
-            </label>
-          </div>
-          <label class="mt-3 block text-xs font-bold text-stone-500">画面描述
-            <textarea class="field mt-1 min-h-24 resize-none" data-id="${item.id}" data-board-field="text" placeholder="记录镜头画面、台词或演员走位">${escapeHtml(item.text)}</textarea>
-          </label>
-        </article>
-      `;
+      return `<article class="paper-card"><div class="between"><div class="section-title">分镜 #${index + 1}</div><button class="paper-btn white-btn delete-btn" data-delete-board="${item.id}" title="删除">🗑</button></div><div class="grid-2" style="margin-top:12px;"><label class="tiny">景别<select class="field" data-id="${item.id}" data-board-field="shot" style="margin-top:6px;">${["特写","近景","中景","远景","全景"].map((name) => `<option ${item.shot === name ? "selected" : ""}>${name}</option>`).join("")}</select></label><label class="tiny">运镜<input class="field" data-id="${item.id}" data-board-field="move" value="${escapeAttr(item.move)}" placeholder="推、拉、摇、移、跟" style="margin-top:6px;"></label></div><label class="tiny" style="display:block; margin-top:12px;">画面描述<textarea class="field" data-id="${item.id}" data-board-field="text" placeholder="记录镜头画面、台词或演员走位" style="min-height:110px; margin-top:6px;">${escapeHtml(item.text)}</textarea></label></article>`;
     }
-
+    function gearPanel(shoot) {
+      const progress = getGearProgress(shoot);
+      return `<div class="stack"><section class="paper-card"><div class="between"><div><div class="section-title">🎒 明日装备与道具排查</div><div class="tiny muted">检查进度：${progress.done}/${progress.total}</div></div><span class="badge purple-text">${progress.percent}%</span></div><div class="progress-track" style="margin-top:14px;"><div class="progress-bar" style="width:${progress.percent}%"></div></div>${progress.percent === 100 ? `<div class="paper-card text-sm" style="margin-top:14px; background:#d8c7a7;">☑️ 装备道具已全部带齐，无遗漏！</div>` : ""}</section>${gearGroup("🔋 前夜20:00充电清单", "charge", shoot.charge)}${gearGroup("🎒 出发前打包清点", "pack", shoot.pack)}<button id="readyBtn" class="paper-btn purple-btn ready-breath" style="width:100%; min-height:64px; font-size:18px;">✨ 确认全部准备就绪！</button></div>`;
+    }
     function gearGroup(title, group, items) {
-      return `
-        <div class="mb-4">
-          <h4 class="mb-2 text-sm font-black text-stone-900">${title}</h4>
-          <div class="space-y-2">
-            ${items.map((item) => `
-              <button class="tiny-card flex w-full items-center gap-3 px-3 py-3 text-left" data-toggle-item="${item.id}" data-group="${group}">
-                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 ${item.done ? "border-purple-600 bg-purple-600 text-white" : "border-stone-300 text-transparent"}">✓</span>
-                <span class="min-w-0 flex-1 break-words text-sm font-semibold ${item.done ? "checked-text" : "text-stone-800"}">${escapeHtml(item.text)}</span>
-              </button>
-            `).join("")}
-          </div>
-          <form class="mt-2 flex gap-2" data-add-item="${group}">
-            <input class="field min-w-0 flex-1 py-2" placeholder="添加自定义条目">
-            <button class="btn w-12 bg-purple-600 text-xl font-bold text-white">＋</button>
-          </form>
-        </div>
-      `;
+      return `<section class="paper-card stack"><div class="section-title">${title}</div><div class="mini-stack">${items.map((item) => `<button class="paper-card between" style="width:100%; text-align:left; padding:12px;" data-toggle-item="${item.id}" data-group="${group}"><span class="badge" style="${item.done ? "background:#e8c1cd; color:#5e5a56;" : ""}">✓</span><span class="text-sm ${item.done ? "checked-text" : ""}" style="flex:1;">${escapeHtml(item.text)}</span></button>`).join("")}</div><form class="row" data-add-item="${group}"><input class="field" placeholder="添加自定义条目" style="min-width:0; flex:1;"><button class="paper-btn purple-btn delete-btn">＋</button></form></section>`;
     }
-
-    function renderCountdownOnly() {
-      const el = $("#countdown");
-      const shoot = getCurrent();
-      if (!el || !shoot) return;
-      const target = new Date(`${shoot.date}T${shoot.startTime}:00`).getTime();
-      const diff = target - Date.now();
-      if (diff <= 0) {
-        el.textContent = "00:00:00";
-        return;
-      }
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor(diff % 86400000 / 3600000);
-      const m = Math.floor(diff % 3600000 / 60000);
-      const s = Math.floor(diff % 60000 / 1000);
-      el.textContent = d > 0 ? `${d}天 ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
+    function inspirationPanel(shoot) {
+      ensureInspiration(shoot);
+      return `<div class="stack"><section class="paper-card stack"><div class="between"><div class="section-title">🎨 灵感色卡</div><span class="badge purple-text">${shoot.inspiration.colors.length}/5</span></div><div class="grid-2">${shoot.inspiration.colors.map((color, index) => `<div><div class="color-chip" style="background:${escapeAttr(color)}"></div><div class="row" style="margin-top:8px;"><input class="field tiny" data-color-index="${index}" value="${escapeAttr(color)}" maxlength="7"><button class="paper-btn white-btn delete-btn" data-delete-color="${index}">×</button></div></div>`).join("")}</div><button id="addColorBtn" class="paper-btn white-btn" ${shoot.inspiration.colors.length >= 5 ? "disabled" : ""}>＋ 添加色块</button></section><section class="paper-card"><div class="section-title">Pose与引导速记</div><textarea id="poseNotes" class="field" style="min-height:140px; margin-top:12px;" placeholder="记录 Pose 口诀或情绪沟通台词">${escapeHtml(shoot.inspiration.pose)}</textarea></section><section class="paper-card"><div class="section-title">拍摄参数速记表</div><textarea id="paramNotes" class="field" style="min-height:150px; margin-top:12px;" placeholder="例如：分镜1：F1.4 | 1/200s | ISO100 | 35mm">${escapeHtml(shoot.inspiration.params)}</textarea></section></div>`;
     }
-
-    function scheduleReminders() {
-      alarmTimers.forEach(clearTimeout);
-      alarmTimers = [];
-      shoots.forEach((shoot) => {
-        const time = reminderDate(shoot).getTime();
-        const delay = time - Date.now();
-        if (delay > 0 && delay < 2147483647) {
-          alarmTimers.push(setTimeout(() => markAndFireAlarm(shoot), delay));
-        }
-      });
+    function bindDetailEvents() {
+      $("[data-close]", $("#drawerContent"))?.addEventListener("click", closeDrawer);
+      $$("[data-tab]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { activeTab = button.dataset.tab; openDetail(currentId); }));
+      $("#readyBtn")?.addEventListener("click", () => { const progress = getGearProgress(getCurrent()); if (progress.percent < 100) return showToast("您的清单还没排查完哦，先检查一下吧～"); $("#readyModal").classList.add("show"); });
+      $("#addStoryboardBtn")?.addEventListener("click", () => { const shoot = getCurrent(); shoot.storyboards.push({ id: uid(), shot: "中景", move: "", text: "" }); saveShoots(); openDetail(shoot.id); });
+      $$("[data-delete-board]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { const shoot = getCurrent(); if (shoot.storyboards.length <= 1) return showToast("至少保留一个分镜。"); shoot.storyboards = shoot.storyboards.filter((item) => item.id !== button.dataset.deleteBoard); saveShoots(); openDetail(shoot.id); }));
+      $$("[data-board-field]", $("#drawerContent")).forEach((field) => field.addEventListener("input", () => { const shoot = getCurrent(), item = shoot.storyboards.find((board) => board.id === field.dataset.id); if (!item) return; item[field.dataset.boardField] = field.value; saveShoots(false); }));
+      $$("[data-toggle-item]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { const shoot = getCurrent(), item = shoot[button.dataset.group].find((entry) => entry.id === button.dataset.toggleItem); if (!item) return; item.done = !item.done; saveShoots(); openDetail(shoot.id); renderList(); }));
+      $$("[data-add-item]", $("#drawerContent")).forEach((form) => form.addEventListener("submit", (event) => { event.preventDefault(); const shoot = getCurrent(), input = $("input", form), text = clean(input.value); if (!text) return; shoot[form.dataset.addItem].push({ id: uid(), text, done: false }); saveShoots(); openDetail(shoot.id); }));
+      $("#poseNotes")?.addEventListener("input", (event) => { const shoot = getCurrent(); ensureInspiration(shoot); shoot.inspiration.pose = event.target.value; saveShoots(false); });
+      $("#paramNotes")?.addEventListener("input", (event) => { const shoot = getCurrent(); ensureInspiration(shoot); shoot.inspiration.params = event.target.value; saveShoots(false); });
+      $$("[data-color-index]", $("#drawerContent")).forEach((input) => input.addEventListener("input", () => { const shoot = getCurrent(), value = normalizeHex(input.value); if (!value) return; shoot.inspiration.colors[Number(input.dataset.colorIndex)] = value; saveShoots(false); const chip = input.parentElement?.parentElement?.querySelector(".color-chip"); if (chip) chip.style.background = value; }));
+      $$("[data-delete-color]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { const shoot = getCurrent(); if (shoot.inspiration.colors.length <= 1) return showToast("至少保留一个色块。"); shoot.inspiration.colors.splice(Number(button.dataset.deleteColor), 1); saveShoots(); openDetail(shoot.id); }));
+      $("#addColorBtn")?.addEventListener("click", () => { const shoot = getCurrent(); if (shoot.inspiration.colors.length >= 5) return showToast("最多添加5个色块。"); shoot.inspiration.colors.push(["#e8c1cd", "#f4e5ea", "#fffaf0", "#d7a8b8", "#5e5a56"][shoot.inspiration.colors.length] || "#e8c1cd"); saveShoots(); openDetail(shoot.id); });
     }
-
-    function checkDueAlarms() {
-      const fired = loadFired();
-      shoots.forEach((shoot) => {
-        const key = `${shoot.id}-${formatAlarmTime(shoot)}`;
-        if (!fired[key] && Date.now() >= reminderDate(shoot).getTime()) {
-          fired[key] = true;
-          localStorage.setItem(firedKey, JSON.stringify(fired));
-          fireAlarm(shoot);
-        }
-      });
-    }
-
-    function markAndFireAlarm(shoot) {
-      const fired = loadFired();
-      fired[`${shoot.id}-${formatAlarmTime(shoot)}`] = true;
-      localStorage.setItem(firedKey, JSON.stringify(fired));
-      fireAlarm(shoot);
-    }
-
-    async function fireAlarm(shoot) {
-      currentId = shoot.id;
-      const message = `【充电与排查提醒】明天的《${shoot.title}》需要开始准备了！请立刻给设备充电并完成清单排查！`;
-      await requestPermissions();
-      showSystemNotification(message);
-      alarmText.textContent = message;
-      alarmOverlay.classList.remove("hidden");
-      alarmOverlay.classList.add("grid");
-      startAlarmSound();
-    }
-
-    async function requestPermissions() {
-      if ("Notification" in window && Notification.permission === "default") {
-        try { await Notification.requestPermission(); } catch (error) {}
-      }
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === "suspended") await audioCtx.resume();
-    }
-
-    function showSystemNotification(body) {
-      if (!("Notification" in window) || Notification.permission !== "granted") return;
-      const title = "充电与排查提醒";
-      navigator.serviceWorker?.ready.then((reg) => {
-        reg.showNotification(title, { body, icon: "./icons/icon-192.svg", badge: "./icons/icon-192.svg", tag: "shoot-reminder", renotify: true });
-      }).catch(() => new Notification(title, { body, icon: "./icons/icon-192.svg" }));
-    }
-
-    function startAlarmSound() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      stopAlarmSound();
-      const gain = audioCtx.createGain();
-      gain.gain.value = 0.0001;
-      gain.connect(audioCtx.destination);
-      const osc1 = audioCtx.createOscillator();
-      const osc2 = audioCtx.createOscillator();
-      osc1.type = "square";
-      osc1.frequency.value = 880;
-      osc2.type = "sine";
-      osc2.frequency.value = 1320;
-      osc1.connect(gain);
-      osc2.connect(gain);
-      osc1.start();
-      osc2.start();
-      const interval = setInterval(() => {
-        const now = audioCtx.currentTime;
-        gain.gain.cancelScheduledValues(now);
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.22, now + .03);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + .22);
-      }, 420);
-      alarmNodes = [osc1, osc2, gain, interval];
-    }
-
-    function stopAlarmSound() {
-      if (!alarmNodes.length) return;
-      clearInterval(alarmNodes[3]);
-      alarmNodes.slice(0, 2).forEach((osc) => { try { osc.stop(); } catch (error) {} });
-      alarmNodes = [];
-    }
-
-    function stopAlarmAndOverlay() {
-      stopAlarmSound();
-      alarmOverlay.classList.add("hidden");
-      alarmOverlay.classList.remove("grid");
-    }
-
+    function renderCountdownOnly() { const el = $("#countdown"), shoot = getCurrent(); if (!el || !shoot) return; const diff = new Date(`${shoot.date}T${shoot.startTime}:00`).getTime() - Date.now(); if (diff <= 0) return el.textContent = "00:00:00"; const d = Math.floor(diff / 86400000), h = Math.floor(diff % 86400000 / 3600000), m = Math.floor(diff % 3600000 / 60000), s = Math.floor(diff % 60000 / 1000); el.textContent = d > 0 ? `${d}天 ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`; }
+    function scheduleReminders() { alarmTimers.forEach(clearTimeout); alarmTimers = []; shoots.forEach((shoot) => { const delay = reminderDate(shoot).getTime() - Date.now(); if (delay > 0 && delay < 2147483647) alarmTimers.push(setTimeout(() => markAndFireAlarm(shoot), delay)); }); }
+    function checkDueAlarms() { const fired = loadFired(); shoots.forEach((shoot) => { const key = `${shoot.id}-${formatAlarmTime(shoot)}`; if (!fired[key] && Date.now() >= reminderDate(shoot).getTime()) { fired[key] = true; localStorage.setItem(firedKey, JSON.stringify(fired)); fireAlarm(shoot); } }); }
+    function markAndFireAlarm(shoot) { const fired = loadFired(); fired[`${shoot.id}-${formatAlarmTime(shoot)}`] = true; localStorage.setItem(firedKey, JSON.stringify(fired)); fireAlarm(shoot); }
+    async function fireAlarm(shoot) { currentId = shoot.id; const message = `【充电与排查提醒】明天的《${shoot.title}》需要开始准备了！请立刻给设备充电并完成清单排查！`; await requestPermissions(); showSystemNotification(message); $("#alarmText").textContent = message; $("#alarmOverlay").classList.add("show"); startAlarmSound(); }
+    async function requestPermissions() { if ("Notification" in window && Notification.permission === "default") { try { await Notification.requestPermission(); } catch (error) {} } if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") await audioCtx.resume(); }
+    function showSystemNotification(body) { if (!("Notification" in window) || Notification.permission !== "granted") return; const title = "充电与排查提醒"; navigator.serviceWorker?.ready.then((reg) => { reg.showNotification(title, { body, icon: "./icons/icon-192.svg", badge: "./icons/icon-192.svg", tag: "shoot-reminder", renotify: true }); }).catch(() => new Notification(title, { body, icon: "./icons/icon-192.svg" })); }
+    function startAlarmSound() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); stopAlarmSound(); const gain = audioCtx.createGain(); gain.gain.value = 0.0001; gain.connect(audioCtx.destination); const osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator(); osc1.type = "square"; osc1.frequency.value = 880; osc2.type = "sine"; osc2.frequency.value = 1320; osc1.connect(gain); osc2.connect(gain); osc1.start(); osc2.start(); const interval = setInterval(() => { const now = audioCtx.currentTime; gain.gain.cancelScheduledValues(now); gain.gain.setValueAtTime(0.0001, now); gain.gain.exponentialRampToValueAtTime(0.22, now + .03); gain.gain.exponentialRampToValueAtTime(0.0001, now + .22); }, 420); alarmNodes = [osc1, osc2, gain, interval]; }
+    function stopAlarmSound() { if (!alarmNodes.length) return; clearInterval(alarmNodes[3]); alarmNodes.slice(0, 2).forEach((osc) => { try { osc.stop(); } catch (error) {} }); alarmNodes = []; }
+    function stopAlarmAndOverlay() { stopAlarmSound(); $("#alarmOverlay").classList.remove("show"); }
     function openDrawer() { document.body.classList.add("drawer-open"); }
     function closeDrawer() { document.body.classList.remove("drawer-open"); renderList(); }
     function getCurrent() { return shoots.find((shoot) => shoot.id === currentId); }
-    function getGearProgress(shoot) {
-      const all = [...(shoot?.charge || []), ...(shoot?.pack || [])];
-      const done = all.filter((item) => item.done).length;
-      return { total: all.length, done, percent: all.length ? Math.round(done / all.length * 100) : 0 };
-    }
-    function reminderDate(shoot) {
-      const date = new Date(`${shoot.date}T20:00:00`);
-      date.setDate(date.getDate() - 1);
-      return date;
-    }
-    function formatAlarmTime(shoot) {
-      const date = reminderDate(shoot);
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} 20:00`;
-    }
+    function getGearProgress(shoot) { const all = [...(shoot?.charge || []), ...(shoot?.pack || [])], done = all.filter((item) => item.done).length; return { total: all.length, done, percent: all.length ? Math.round(done / all.length * 100) : 0 }; }
+    function reminderDate(shoot) { const date = new Date(`${shoot.date}T20:00:00`); date.setDate(date.getDate() - 1); return date; }
+    function formatAlarmTime(shoot) { const date = reminderDate(shoot); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} 20:00`; }
     function formatDate(date) { return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`; }
-    function metric(value, label) { return `<div class="rounded-lg bg-stone-50 py-3"><p class="text-base font-black text-stone-900">${value}</p><p class="mt-1 text-[11px] text-stone-500">${label}</p></div>`; }
-    function input(label, name, placeholder, type, value = "") {
-      return `<label class="block text-xs font-bold text-stone-500">${label}<input class="field mt-1" name="${name}" type="${type}" value="${value}" placeholder="${placeholder}" required></label>`;
-    }
-    function mockWeather() {
-      const wind = rand(7, 20);
-      const rain = rand(8, 62);
-      return { temp: rand(24, 32), rain, wind, cloud: rand(20, 75), risk: wind > 15 || rain > 50 ? "中" : "低" };
-    }
-    function loadShoots() {
-      try { return JSON.parse(localStorage.getItem(storeKey)) || defaultShoots; } catch (error) { return defaultShoots; }
-    }
-    function saveShoots(resetTimers = true) {
-      localStorage.setItem(storeKey, JSON.stringify(shoots));
-      if (resetTimers) scheduleReminders();
-    }
-    function loadFired() {
-      try { return JSON.parse(localStorage.getItem(firedKey)) || {}; } catch (error) { return {}; }
-    }
-    function setupInstallGuide() {
-      const guide = $("#installGuide");
-      const text = $("#installText");
-      const btn = $("#installBtn");
-      const ua = navigator.userAgent.toLowerCase();
-      const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-      if (standalone) return;
-      guide.classList.remove("hidden");
-      if (/iphone|ipad|ipod/.test(ua)) text.textContent = "点 Safari 底部分享按钮，再选“添加到主屏幕”。";
-      window.addEventListener("beforeinstallprompt", (event) => {
-        event.preventDefault();
-        deferredPrompt = event;
-        btn.classList.remove("hidden");
-        text.textContent = "点击右侧按钮，即可安装成桌面 App。";
-      });
-      btn.addEventListener("click", async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        btn.classList.add("hidden");
-      });
-    }
-    function registerPwa() {
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
-      }
-    }
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("show");
-      clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(() => toast.classList.remove("show"), 2600);
-    }
-    function nextDate(days) {
-      const date = new Date();
-      date.setDate(date.getDate() + days);
-      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-    }
+    function metric(value, label) { return `<div class="paper-card" style="padding:10px; text-align:center;"><div class="text-lg">${value}</div><div class="tiny muted">${label}</div></div>`; }
+    function input(label, name, placeholder, type, value = "") { return `<label class="tiny">${label}<input class="field" name="${name}" type="${type}" value="${value}" placeholder="${placeholder}" required style="margin-top:6px;"></label>`; }
+    function mockWeather() { const wind = rand(7, 20), rain = rand(8, 62); return { temp: rand(24, 32), rain, wind, cloud: rand(20, 75), risk: wind > 15 || rain > 50 ? "中" : "低" }; }
+    function ensureInspiration(shoot) { if (!shoot.inspiration) shoot.inspiration = { colors: ["#e8c1cd", "#f4e5ea", "#5e5a56"], pose: "", params: "" }; if (!Array.isArray(shoot.inspiration.colors)) shoot.inspiration.colors = ["#e8c1cd", "#f4e5ea", "#5e5a56"]; }
+    function loadShoots() { try { const current = JSON.parse(localStorage.getItem(storeKey)); if (current) return current; const old = JSON.parse(localStorage.getItem(oldStoreKey)); if (old) return old.map((shoot) => ({ ...shoot, inspiration: shoot.inspiration || { colors: ["#e8c1cd", "#f4e5ea", "#5e5a56"], pose: "", params: "" } })); return defaultShoots; } catch (error) { return defaultShoots; } }
+    function saveShoots(resetTimers = true) { localStorage.setItem(storeKey, JSON.stringify(shoots)); if (resetTimers) scheduleReminders(); }
+    function loadFired() { try { return JSON.parse(localStorage.getItem(firedKey)) || {}; } catch (error) { return {}; } }
+    function setupInstallGuide() { const guide = $("#installGuide"), text = $("#installText"), btn = $("#installBtn"), standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone; if (standalone) return; guide.hidden = false; if (/iphone|ipad|ipod/i.test(navigator.userAgent)) text.textContent = "点 Safari 底部分享按钮，再选“添加到主屏幕”。"; window.addEventListener("beforeinstallprompt", (event) => { event.preventDefault(); deferredPrompt = event; btn.hidden = false; text.textContent = "点击右侧按钮，即可安装成桌面 App。"; }); btn.addEventListener("click", async () => { if (!deferredPrompt) return showToast("请使用浏览器菜单里的“添加到主屏幕”。"); deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; }); }
+    function registerPwa() { if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {})); }
+    function showToast(message) { const toast = $("#toast"); toast.textContent = message; toast.classList.add("show"); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 2600); }
+    function nextDate(days) { const date = new Date(); date.setDate(date.getDate() + days); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`; }
     function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
     function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
     function pad(value) { return String(value).padStart(2, "0"); }
     function clean(value) { return String(value || "").trim(); }
-    function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
+    function normalizeHex(value) { const text = String(value || "").trim(); return /^#[0-9a-fA-F]{6}$/.test(text) ? text : ""; }
+    function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
     function escapeAttr(value) { return escapeHtml(value).replace(/`/g, "&#096;"); }
   </script>
 </body>
