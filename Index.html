@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8b5cf6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="拍摄排查">
+  <title>拍摄备忘与闹钟提醒</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.svg">
+  <style>
+    * { box-sizing: border-box; letter-spacing: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { min-height: 100%; background: #faf8f6; color: #1c1917; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; overflow-x: hidden; }
+    button, input, textarea, select { font: inherit; }
+    button { border: 0; touch-action: manipulation; cursor: pointer; }
+    .app-shell { width: min(100%, 430px); margin: 0 auto; min-height: 100vh; padding: 16px 16px max(110px, env(safe-area-inset-bottom)); background: #faf8f6; }
+    .card { background: #fff; border: 1px solid #e7e5e4; border-radius: 8px; box-shadow: 0 1px 2px rgba(28,25,23,.04); }
+    .tiny-card { background: #fff; border: 1px solid #e7e5e4; border-radius: 8px; }
+    .field { width: 100%; border: 1px solid #e7e5e4; border-radius: 8px; background: #fff; padding: 12px 13px; outline: none; transition: border-color .2s, box-shadow .2s; }
+    .field:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,.16); }
+    .btn { border-radius: 8px; min-height: 44px; transition: transform .18s, background .18s, border-color .18s, opacity .18s; }
+    .btn:active { transform: scale(.98); }
+    .drawer-backdrop { opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+    .drawer { transform: translateY(105%); transition: transform .34s cubic-bezier(.22,.9,.22,1); }
+    body.drawer-open { overflow: hidden; }
+    body.drawer-open .drawer-backdrop { opacity: 1; pointer-events: auto; }
+    body.drawer-open .drawer { transform: translateY(0); }
+    .pop-in { animation: popIn .28s ease both; }
+    @keyframes popIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .slide-in { animation: slideIn .26s ease both; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .pulse-bubble { animation: bubble 2.2s ease-in-out infinite; }
+    @keyframes bubble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    .breath { animation: breath 2.4s ease-in-out infinite; }
+    @keyframes breath { 0%, 100% { box-shadow: 0 0 14px rgba(139,92,246,.34); } 50% { box-shadow: 0 0 28px rgba(139,92,246,.64); } }
+    .toast { transform: translate(-50%, 16px); opacity: 0; pointer-events: none; transition: opacity .24s, transform .24s; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    .checked-text { color: #a8a29e; text-decoration: line-through; text-decoration-thickness: 2px; }
+    .progress-shine { background-image: linear-gradient(90deg,#8b5cf6,#a78bfa,#8b5cf6); background-size: 180% 100%; animation: shine 1.8s linear infinite; }
+    @keyframes shine { to { background-position: 180% 0; } }
+    .alarm-ring { animation: ring .7s ease-in-out infinite; }
+    @keyframes ring { 0%,100% { transform: rotate(0); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } }
+    .ready-orbit::before, .ready-orbit::after { content: ""; position: absolute; inset: -8px; border: 1px solid rgba(139,92,246,.25); border-radius: 999px; animation: orbit 1.8s ease-in-out infinite; }
+    .ready-orbit::after { inset: -15px; animation-delay: .25s; }
+    @keyframes orbit { 0% { transform: scale(.85); opacity: .9; } 100% { transform: scale(1.18); opacity: 0; } }
+    .fixed { position: fixed; } .relative { position: relative; } .inset-0 { inset: 0; } .inset-x-0 { left: 0; right: 0; }
+    .bottom-0 { bottom: 0; } .bottom-5 { bottom: 20px; } .bottom-24 { bottom: 96px; } .left-1\/2 { left: 50%; }
+    .z-20 { z-index: 20; } .z-30 { z-index: 30; } .z-40 { z-index: 40; } .z-50 { z-index: 50; } .z-\[55\] { z-index: 55; } .z-\[60\] { z-index: 60; }
+    .block { display: block; } .hidden { display: none; } .flex { display: flex; } .grid { display: grid; }
+    .items-start { align-items: flex-start; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .place-items-center { place-items: center; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .flex-1 { flex: 1 1 0%; } .shrink-0 { flex-shrink: 0; } .min-w-0 { min-width: 0; } .w-full { width: 100%; } .h-full { height: 100%; }
+    .w-2 { width: 8px; } .h-2 { height: 8px; } .w-6 { width: 24px; } .h-6 { height: 24px; } .w-9 { width: 36px; } .h-9 { height: 36px; } .w-10 { width: 40px; } .h-10 { height: 40px; } .w-12 { width: 48px; } .w-14 { width: 56px; } .h-14 { height: 56px; } .w-20 { width: 80px; } .h-20 { height: 80px; }
+    .h-1 { height: 4px; } .h-1\.5 { height: 6px; } .h-8 { height: 32px; } .h-\[95vh\] { height: 95vh; } .h-\[calc\(95vh-32px\)\] { height: calc(95vh - 32px); } .min-h-24 { min-height: 96px; }
+    .w-\[calc\(100\%-32px\)\] { width: calc(100% - 32px); } .max-w-\[360px\] { max-width: 360px; } .max-w-\[398px\] { max-width: 398px; } .max-w-\[430px\] { max-width: 430px; }
+    .-translate-x-1\/2 { transform: translateX(-50%); }
+    .mx-auto { margin-left: auto; margin-right: auto; } .my-5 { margin-top: 20px; margin-bottom: 20px; }
+    .mt-1 { margin-top: 4px; } .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 12px; } .mt-4 { margin-top: 16px; } .mt-5 { margin-top: 20px; } .mt-6 { margin-top: 24px; }
+    .mb-2 { margin-bottom: 8px; } .mb-3 { margin-bottom: 12px; } .mb-4 { margin-bottom: 16px; } .mb-8 { margin-bottom: 32px; }
+    .p-3 { padding: 12px; } .p-4 { padding: 16px; } .p-5 { padding: 20px; } .p-6 { padding: 24px; } .pb-8 { padding-bottom: 32px; }
+    .px-2\.5 { padding-left: 10px; padding-right: 10px; } .px-3 { padding-left: 12px; padding-right: 12px; } .px-4 { padding-left: 16px; padding-right: 16px; } .px-5 { padding-left: 20px; padding-right: 20px; }
+    .py-1 { padding-top: 4px; padding-bottom: 4px; } .py-2 { padding-top: 8px; padding-bottom: 8px; } .py-3 { padding-top: 12px; padding-bottom: 12px; } .py-5 { padding-top: 20px; padding-bottom: 20px; }
+    .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .space-y-2 > * + * { margin-top: 8px; } .space-y-3 > * + * { margin-top: 12px; }
+    .overflow-hidden { overflow: hidden; } .overflow-y-auto { overflow-y: auto; } .resize-none { resize: none; } .cursor-grab { cursor: grab; }
+    .rounded-md { border-radius: 6px; } .rounded-lg { border-radius: 8px; } .rounded-xl { border-radius: 12px; } .rounded-full { border-radius: 999px; } .rounded-t-2xl { border-top-left-radius: 16px; border-top-right-radius: 16px; }
+    .border { border: 1px solid #e7e5e4; } .border-2 { border: 2px solid #e7e5e4; } .border-stone-200 { border-color: #e7e5e4; } .border-stone-300 { border-color: #d6d3d1; } .border-purple-200 { border-color: #ddd6fe; } .border-purple-300 { border-color: #c4b5fd; } .border-emerald-200 { border-color: #a7f3d0; }
+    .bg-paper { background: #faf8f6; } .bg-white { background: #fff; } .bg-white\/55 { background: rgba(255,255,255,.55); } .bg-white\/95 { background: rgba(255,255,255,.95); }
+    .bg-stone-50 { background: #fafaf9; } .bg-stone-50\/60 { background: rgba(250,250,249,.6); } .bg-stone-100 { background: #f5f5f4; } .bg-stone-300\/80 { background: rgba(214,211,209,.8); } .bg-stone-950\/25 { background: rgba(12,10,9,.25); } .bg-stone-950\/45 { background: rgba(12,10,9,.45); }
+    .bg-purple-50 { background: #f5f3ff; } .bg-purple-100 { background: #ede9fe; } .bg-purple-600 { background: #8b5cf6; } .bg-emerald-50 { background: #ecfdf5; } .bg-amber-100 { background: #fef3c7; } .bg-red-100 { background: #fee2e2; }
+    .text-left { text-align: left; } .text-center { text-align: center; } .break-words { overflow-wrap: break-word; }
+    .text-\[11px\] { font-size: 11px; } .text-xs { font-size: 12px; line-height: 16px; } .text-sm { font-size: 14px; line-height: 20px; } .text-base { font-size: 16px; line-height: 24px; } .text-lg { font-size: 18px; line-height: 28px; } .text-xl { font-size: 20px; line-height: 28px; } .text-2xl { font-size: 24px; line-height: 32px; } .text-4xl { font-size: 36px; line-height: 40px; } .text-5xl { font-size: 48px; line-height: 1; }
+    .font-semibold { font-weight: 600; } .font-bold { font-weight: 700; } .font-black { font-weight: 900; }
+    .leading-5 { line-height: 20px; } .leading-6 { line-height: 24px; } .leading-8 { line-height: 32px; } .leading-none { line-height: 1; }
+    .text-white { color: #fff; } .text-transparent { color: transparent; } .text-purple-600 { color: #8b5cf6; } .text-purple-700 { color: #7e22ce; } .text-stone-400 { color: #a8a29e; } .text-stone-500 { color: #78716c; } .text-stone-600 { color: #57534e; } .text-stone-700 { color: #44403c; } .text-stone-800 { color: #292524; } .text-stone-900 { color: #1c1917; } .text-emerald-700 { color: #047857; } .text-amber-700 { color: #b45309; } .text-red-700 { color: #b91c1c; }
+    .shadow-sm { box-shadow: 0 1px 2px rgba(28,25,23,.04); } .shadow-glow { box-shadow: 0 0 20px rgba(139,92,246,.45); } .shadow-soft { box-shadow: 0 18px 45px rgba(28,25,23,.08); }
+    .backdrop-blur, .backdrop-blur-\[2px\] { backdrop-filter: blur(2px); } .backdrop-blur-sm { backdrop-filter: blur(4px); } .backdrop-blur-xl { backdrop-filter: blur(24px); }
+    .transition { transition: transform .18s, opacity .18s, background .18s, border-color .18s; } .active\:scale-\[\.99\]:active { transform: scale(.99); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="mb-4">
+      <section id="installGuide" class="pulse-bubble mb-4 hidden rounded-lg border border-purple-200 bg-white px-4 py-3 shadow-sm">
+        <div class="flex items-start gap-3">
+          <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-purple-100 text-lg text-purple-600">↥</div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold text-stone-900">安装到手机桌面</p>
+            <p id="installText" class="mt-1 text-xs leading-5 text-stone-500">打开浏览器菜单，选择“添加到主屏幕”。</p>
+          </div>
+          <button id="installBtn" class="btn hidden bg-purple-600 px-3 text-xs font-semibold text-white">安装</button>
+        </div>
+      </section>
+
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold text-purple-600">Warm White Shooting Planner</p>
+          <h1 class="mt-1 text-2xl font-black text-stone-900">拍摄备忘与排查</h1>
+        </div>
+        <button id="testAlarmBtn" class="btn border border-purple-200 bg-white px-3 text-xs font-bold text-purple-600 shadow-sm">测试铃声与权限</button>
+      </div>
+      <p class="mt-2 text-sm leading-6 text-stone-500">分镜、天气、装备清单和前夜20:00提醒，集中放进一个手机小工具里。</p>
+    </header>
+
+    <section class="card mb-4 p-3">
+      <div class="flex items-start gap-3">
+        <div class="mt-1 h-2 w-2 rounded-full bg-purple-600 shadow-glow"></div>
+        <p class="text-xs leading-5 text-stone-500">网页提醒在 App 打开、后台仍存活时最稳定。若手机把浏览器完全关掉，系统可能拦截响铃；重要拍摄建议再设一个手机系统闹钟。</p>
+      </div>
+    </section>
+
+    <section id="shootList" class="space-y-3"></section>
+  </main>
+
+  <button id="newShootBtn" class="btn fixed bottom-5 left-1/2 z-20 flex h-14 w-[calc(100%-32px)] max-w-[398px] -translate-x-1/2 items-center justify-center gap-2 bg-purple-600 font-bold text-white shadow-glow">
+    <span class="text-xl leading-none">＋</span><span>新建拍摄</span>
+  </button>
+
+  <div class="drawer-backdrop fixed inset-0 z-30 bg-stone-950/25 backdrop-blur-[2px]"></div>
+  <aside id="drawer" class="drawer fixed inset-x-0 bottom-0 z-40 mx-auto h-[95vh] w-full max-w-[430px] overflow-hidden rounded-t-2xl border border-stone-200 bg-paper shadow-soft">
+    <div id="drawerHandle" class="flex h-8 cursor-grab items-center justify-center">
+      <div class="h-1 w-12 rounded-full bg-stone-300/80"></div>
+    </div>
+    <div id="drawerContent" class="h-[calc(95vh-32px)] overflow-y-auto px-4 pb-8"></div>
+  </aside>
+
+  <section id="alarmOverlay" class="fixed inset-0 z-50 hidden place-items-center bg-stone-950/45 p-4 backdrop-blur-sm">
+    <div class="alarm-ring w-full max-w-[360px] rounded-xl border border-purple-200 bg-white p-5 text-center shadow-soft">
+      <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-purple-100 text-2xl text-purple-600">🔔</div>
+      <h2 class="mt-4 text-xl font-black text-stone-900">前夜20:00排查提醒</h2>
+      <p id="alarmText" class="mt-2 text-sm leading-6 text-stone-600"></p>
+      <div class="mt-5 grid grid-cols-2 gap-3">
+        <button id="ackAlarmBtn" class="btn border border-stone-200 bg-white font-bold text-stone-700">我知道了</button>
+        <button id="goCheckBtn" class="btn bg-purple-600 font-bold text-white">去排查</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="readyModal" class="fixed inset-0 z-[55] hidden place-items-center bg-white/55 p-4 backdrop-blur-xl">
+    <div class="pop-in w-full max-w-[360px] rounded-xl border border-purple-200 bg-white p-6 text-center shadow-soft">
+      <div class="ready-orbit relative mx-auto grid h-20 w-20 place-items-center rounded-full bg-purple-100 text-4xl text-purple-600">📷</div>
+      <h2 class="mt-6 text-2xl font-black leading-8 text-stone-900">🎉 太棒啦！全部准备好啦！</h2>
+      <p class="mt-3 text-sm leading-6 text-stone-600">等待出发！预祝拍摄顺利～</p>
+      <button id="closeReadyBtn" class="btn mt-6 w-full bg-purple-600 font-black text-white shadow-glow">冲！</button>
+    </div>
+  </section>
+
+  <div id="toast" class="toast fixed bottom-24 left-1/2 z-[60] w-[calc(100%-32px)] max-w-[398px] rounded-lg border border-purple-200 bg-white/95 px-4 py-3 text-sm font-semibold text-stone-800 shadow-soft backdrop-blur"></div>
+
+  <script>
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const storeKey = "warmShootPlanner.v2";
+    const firedKey = "warmShootPlanner.fired.v2";
+    const weekdays = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+
+    const defaultShoots = [
+      {
+        id: uid(),
+        title: "复古人像外拍",
+        date: nextDate(2),
+        startTime: "16:30",
+        prepTime: "14:30",
+        leaveTime: "15:20",
+        place: "滨江公园3号门",
+        weather: { temp: 30, rain: 18, wind: 12, cloud: 35, risk: "低" },
+        storyboards: [{ id: uid(), shot: "中景", move: "跟", text: "模特沿河堤慢走，夕阳从侧后方扫过发丝，镜头保持柔和推进。" }],
+        charge: ["相机电池","监视器电池","补光灯","无线麦克风"].map((text) => ({ id: uid(), text, done: false })),
+        pack: ["主机","35mm镜头","反光板","服装","合同"].map((text) => ({ id: uid(), text, done: false }))
+      }
+    ];
+
+    let shoots = loadShoots();
+    let currentId = shoots[0]?.id || "";
+    let alarmTimers = [];
+    let audioCtx = null;
+    let alarmNodes = [];
+    let deferredPrompt = null;
+
+    const shootList = $("#shootList");
+    const drawerContent = $("#drawerContent");
+    const toast = $("#toast");
+    const alarmOverlay = $("#alarmOverlay");
+    const alarmText = $("#alarmText");
+
+    renderList();
+    bindGlobalEvents();
+    registerPwa();
+    setupInstallGuide();
+    scheduleReminders();
+    checkDueAlarms();
+    setInterval(checkDueAlarms, 15000);
+    setInterval(renderCountdownOnly, 1000);
+
+    function bindGlobalEvents() {
+      $("#newShootBtn").addEventListener("click", openCreateDrawer);
+      $(".drawer-backdrop").addEventListener("click", closeDrawer);
+      $("#testAlarmBtn").addEventListener("click", async () => {
+        await requestPermissions();
+        startAlarmSound();
+        showToast("铃声测试已开始，3秒后自动停止。");
+        setTimeout(stopAlarmSound, 3000);
+      });
+      $("#ackAlarmBtn").addEventListener("click", stopAlarmAndOverlay);
+      $("#goCheckBtn").addEventListener("click", () => {
+        stopAlarmAndOverlay();
+        openDetail(currentId);
+        setTimeout(() => $("#gearSection")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+      });
+      $("#closeReadyBtn").addEventListener("click", () => $("#readyModal").classList.add("hidden"));
+
+      let startY = 0;
+      $("#drawerHandle").addEventListener("touchstart", (event) => { startY = event.touches[0].clientY; }, { passive: true });
+      $("#drawerHandle").addEventListener("touchend", (event) => {
+        if (event.changedTouches[0].clientY - startY > 45) closeDrawer();
+      });
+    }
+
+    function renderList() {
+      if (!shoots.length) {
+        shootList.innerHTML = `<section class="card p-5 text-center text-sm text-stone-500">还没有拍摄计划，点击底部按钮新建一个。</section>`;
+        return;
+      }
+      shootList.innerHTML = shoots.map((shoot) => {
+        const progress = getGearProgress(shoot);
+        const next = new Date(`${shoot.date}T${shoot.startTime}:00`);
+        return `
+          <button class="card block w-full p-4 text-left transition active:scale-[.99]" data-open="${shoot.id}">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-purple-600">${formatDate(next)} · ${shoot.place || "未填写地点"}</p>
+                <h2 class="mt-1 break-words text-lg font-black text-stone-900">${escapeHtml(shoot.title)}</h2>
+              </div>
+              <span class="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-600">${progress.percent}%</span>
+            </div>
+            <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-stone-100">
+              <div class="h-full rounded-full progress-shine" style="width:${progress.percent}%"></div>
+            </div>
+            <p class="mt-3 text-xs text-stone-500">前夜20:00提醒：${formatAlarmTime(shoot)}</p>
+          </button>
+        `;
+      }).join("");
+      $$("[data-open]", shootList).forEach((button) => button.addEventListener("click", () => openDetail(button.dataset.open)));
+    }
+
+    function openCreateDrawer() {
+      drawerContent.innerHTML = `
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-xl font-black text-stone-900">新建拍摄</h2>
+          <button class="btn h-10 w-10 border border-stone-200 bg-white text-xl text-stone-500" data-close>×</button>
+        </div>
+        <form id="createForm" class="space-y-3">
+          ${input("主题", "title", "例如：咖啡店产品短片", "text")}
+          ${input("拍摄日期", "date", "", "date", nextDate(1))}
+          ${input("开拍时间", "startTime", "", "time", "09:30")}
+          ${input("开始准备", "prepTime", "", "time", "07:30")}
+          ${input("出门时间", "leaveTime", "", "time", "08:20")}
+          ${input("地点", "place", "例如：山谷咖啡二楼窗边", "text")}
+          <button class="btn w-full bg-purple-600 font-bold text-white">保存拍摄</button>
+        </form>
+      `;
+      openDrawer();
+      $("[data-close]", drawerContent).addEventListener("click", closeDrawer);
+      $("#createForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        const shoot = {
+          id: uid(),
+          title: clean(form.get("title")) || "未命名拍摄",
+          date: form.get("date"),
+          startTime: form.get("startTime"),
+          prepTime: form.get("prepTime"),
+          leaveTime: form.get("leaveTime"),
+          place: clean(form.get("place")),
+          weather: mockWeather(),
+          storyboards: [{ id: uid(), shot: "中景", move: "", text: "" }],
+          charge: ["相机电池","监视器电池","补光灯","无线麦克风"].map((text) => ({ id: uid(), text, done: false })),
+          pack: ["主机","镜头","反光板","服装","合同"].map((text) => ({ id: uid(), text, done: false }))
+        };
+        shoots.unshift(shoot);
+        currentId = shoot.id;
+        saveShoots();
+        await requestPermissions();
+        scheduleReminders();
+        renderList();
+        openDetail(shoot.id);
+        showToast("已保存，并设置前夜20:00提醒。");
+      });
+    }
+
+    function openDetail(id) {
+      currentId = id;
+      const shoot = getCurrent();
+      if (!shoot) return;
+      drawerContent.innerHTML = detailTemplate(shoot);
+      openDrawer();
+      bindDetailEvents();
+      renderCountdownOnly();
+    }
+
+    function detailTemplate(shoot) {
+      const date = new Date(`${shoot.date}T${shoot.startTime}:00`);
+      const progress = getGearProgress(shoot);
+      return `
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-purple-600">${escapeHtml(formatDate(date))} · ${weekdays[date.getDay()]}</p>
+            <h2 class="break-words text-xl font-black text-stone-900">${escapeHtml(shoot.title)}</h2>
+          </div>
+          <button class="btn h-10 w-10 border border-stone-200 bg-white text-xl text-stone-500" data-close>×</button>
+        </div>
+        <section class="card mb-4 p-4">
+          <p class="text-sm font-bold text-stone-500">今日拍摄与准备倒计时</p>
+          <p class="mt-1 text-xs text-stone-400">下一场拍摄倒计时</p>
+          <div id="countdown" class="my-5 text-center text-5xl font-black text-stone-900">--:--:--</div>
+          <p class="mb-3 text-center text-sm text-stone-500">建议${shoot.prepTime}开始准备，${shoot.leaveTime}出门</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="tiny-card p-3 text-center"><p class="text-xs text-stone-500">开始准备</p><p class="mt-1 text-lg font-black text-stone-900">${shoot.prepTime}</p></div>
+            <div class="tiny-card p-3 text-center"><p class="text-xs text-stone-500">出门</p><p class="mt-1 text-lg font-black text-stone-900">${shoot.leaveTime}</p></div>
+          </div>
+        </section>
+        ${weatherTemplate(shoot)}
+        <section class="card mb-4 p-4">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-lg font-black text-stone-900">🎬 创意纯分镜计划</h3>
+          </div>
+          <div id="storyboardList" class="space-y-3">${shoot.storyboards.map(storyboardCard).join("")}</div>
+          <button id="addStoryboardBtn" class="btn mt-3 w-full border border-purple-300 bg-white font-bold text-purple-600">➕ 添加新分镜</button>
+        </section>
+        <section id="gearSection" class="card mb-4 p-4">
+          <div class="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-black text-stone-900">🎒 明日拍摄装备与道具排查</h3>
+              <p class="mt-1 text-xs text-stone-500">检查进度：${progress.done}/${progress.total}</p>
+            </div>
+            <span class="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-600">${progress.percent}%</span>
+          </div>
+          <div class="mb-4 h-1.5 overflow-hidden rounded-full bg-stone-100 shadow-glow">
+            <div class="h-full rounded-full progress-shine" style="width:${progress.percent}%"></div>
+          </div>
+          ${progress.percent === 100 ? `<div class="pop-in mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">☑️ 装备道具已全部带齐，无遗漏！</div>` : ""}
+          ${gearGroup("🔋 前夜20:00充电清单", "charge", shoot.charge)}
+          ${gearGroup("🎒 出发前打包清点", "pack", shoot.pack)}
+        </section>
+        <section class="mb-8">
+          <button id="readyBtn" class="btn breath w-full rounded-xl bg-purple-600 px-5 py-5 text-lg font-black text-white">✨ 确认全部准备就绪！</button>
+        </section>
+      `;
+    }
+
+    function weatherTemplate(shoot) {
+      const w = shoot.weather;
+      const riskClass = w.risk === "高" ? "bg-red-100 text-red-700" : w.risk === "中" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+      const advice = w.wind > 15
+        ? "风速超过15km/h，轻量三脚架要加配重，无人机建议等风稳后再飞。"
+        : w.rain > 50
+          ? "降雨概率偏高，建议带防水袋，并准备室内备用机位。"
+          : "自然条件稳定，适合优先拍逆光氛围镜头和人物特写。";
+      return `
+        <section class="card mb-4 p-4">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-lg font-black text-stone-900">天气判断与自然条件</h3>
+            <span class="rounded-full px-2.5 py-1 text-xs font-black ${riskClass}">风险：${w.risk}</span>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center">
+            ${metric(`${w.temp}°C`, "温度")}
+            ${metric(`${w.rain}%`, "降雨")}
+            ${metric(`${w.wind}`, "km/h风速")}
+            ${metric(`${w.cloud}%`, "云量")}
+          </div>
+          <div class="mt-4 grid gap-2 text-sm text-stone-600">
+            <p><b class="text-stone-900">Sunrise/Sunset：</b>06:02 / 19:08</p>
+            <p><b class="text-stone-900">Golden Hour：</b>06:10-07:05，18:12-19:02</p>
+            <p><b class="text-stone-900">Blue Hour：</b>05:35-05:58，19:12-19:38</p>
+          </div>
+          <p class="mt-4 rounded-lg bg-purple-50 px-3 py-2 text-sm leading-6 text-purple-700">AI增强拍摄建议：${advice}</p>
+        </section>
+      `;
+    }
+
+    function bindDetailEvents() {
+      $("[data-close]", drawerContent)?.addEventListener("click", closeDrawer);
+      $("#readyBtn")?.addEventListener("click", () => {
+        const progress = getGearProgress(getCurrent());
+        if (progress.percent < 100) return showToast("您的清单还没排查完哦，先检查一下吧～");
+        $("#readyModal").classList.remove("hidden");
+        $("#readyModal").classList.add("grid");
+      });
+      $("#addStoryboardBtn")?.addEventListener("click", () => {
+        const shoot = getCurrent();
+        shoot.storyboards.push({ id: uid(), shot: "中景", move: "", text: "" });
+        saveShoots();
+        openDetail(shoot.id);
+        setTimeout(() => $("#storyboardList article:last-child")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+      });
+      $$("[data-delete-board]", drawerContent).forEach((button) => button.addEventListener("click", () => {
+        const shoot = getCurrent();
+        if (shoot.storyboards.length <= 1) return showToast("至少保留一个分镜。");
+        shoot.storyboards = shoot.storyboards.filter((item) => item.id !== button.dataset.deleteBoard);
+        saveShoots();
+        openDetail(shoot.id);
+      }));
+      $$("[data-board-field]", drawerContent).forEach((field) => field.addEventListener("input", () => {
+        const shoot = getCurrent();
+        const item = shoot.storyboards.find((board) => board.id === field.dataset.id);
+        if (!item) return;
+        item[field.dataset.boardField] = field.value;
+        saveShoots(false);
+      }));
+      $$("[data-toggle-item]", drawerContent).forEach((button) => button.addEventListener("click", () => {
+        const shoot = getCurrent();
+        const group = button.dataset.group;
+        const item = shoot[group].find((entry) => entry.id === button.dataset.toggleItem);
+        if (!item) return;
+        item.done = !item.done;
+        saveShoots();
+        openDetail(shoot.id);
+        renderList();
+      }));
+      $$("[data-add-item]", drawerContent).forEach((form) => form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const shoot = getCurrent();
+        const group = form.dataset.addItem;
+        const input = $("input", form);
+        const text = clean(input.value);
+        if (!text) return;
+        shoot[group].push({ id: uid(), text, done: false });
+        saveShoots();
+        openDetail(shoot.id);
+      }));
+    }
+
+    function storyboardCard(item, index) {
+      return `
+        <article class="slide-in rounded-lg border border-stone-200 bg-stone-50/60 p-3">
+          <div class="mb-3 flex items-center justify-between">
+            <h4 class="font-black text-stone-900">分镜 #${index + 1}</h4>
+            <button class="btn h-9 w-9 bg-purple-100 text-purple-600" data-delete-board="${item.id}" title="删除">🗑</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="text-xs font-bold text-stone-500">景别
+              <select class="field mt-1 py-2" data-id="${item.id}" data-board-field="shot">
+                ${["特写","近景","中景","远景","全景"].map((name) => `<option ${item.shot === name ? "selected" : ""}>${name}</option>`).join("")}
+              </select>
+            </label>
+            <label class="text-xs font-bold text-stone-500">运镜
+              <input class="field mt-1 py-2" data-id="${item.id}" data-board-field="move" value="${escapeAttr(item.move)}" placeholder="推、拉、摇、移、跟">
+            </label>
+          </div>
+          <label class="mt-3 block text-xs font-bold text-stone-500">画面描述
+            <textarea class="field mt-1 min-h-24 resize-none" data-id="${item.id}" data-board-field="text" placeholder="记录镜头画面、台词或演员走位">${escapeHtml(item.text)}</textarea>
+          </label>
+        </article>
+      `;
+    }
+
+    function gearGroup(title, group, items) {
+      return `
+        <div class="mb-4">
+          <h4 class="mb-2 text-sm font-black text-stone-900">${title}</h4>
+          <div class="space-y-2">
+            ${items.map((item) => `
+              <button class="tiny-card flex w-full items-center gap-3 px-3 py-3 text-left" data-toggle-item="${item.id}" data-group="${group}">
+                <span class="grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 ${item.done ? "border-purple-600 bg-purple-600 text-white" : "border-stone-300 text-transparent"}">✓</span>
+                <span class="min-w-0 flex-1 break-words text-sm font-semibold ${item.done ? "checked-text" : "text-stone-800"}">${escapeHtml(item.text)}</span>
+              </button>
+            `).join("")}
+          </div>
+          <form class="mt-2 flex gap-2" data-add-item="${group}">
+            <input class="field min-w-0 flex-1 py-2" placeholder="添加自定义条目">
+            <button class="btn w-12 bg-purple-600 text-xl font-bold text-white">＋</button>
+          </form>
+        </div>
+      `;
+    }
+
+    function renderCountdownOnly() {
+      const el = $("#countdown");
+      const shoot = getCurrent();
+      if (!el || !shoot) return;
+      const target = new Date(`${shoot.date}T${shoot.startTime}:00`).getTime();
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        el.textContent = "00:00:00";
+        return;
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor(diff % 86400000 / 3600000);
+      const m = Math.floor(diff % 3600000 / 60000);
+      const s = Math.floor(diff % 60000 / 1000);
+      el.textContent = d > 0 ? `${d}天 ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    function scheduleReminders() {
+      alarmTimers.forEach(clearTimeout);
+      alarmTimers = [];
+      shoots.forEach((shoot) => {
+        const time = reminderDate(shoot).getTime();
+        const delay = time - Date.now();
+        if (delay > 0 && delay < 2147483647) {
+          alarmTimers.push(setTimeout(() => markAndFireAlarm(shoot), delay));
+        }
+      });
+    }
+
+    function checkDueAlarms() {
+      const fired = loadFired();
+      shoots.forEach((shoot) => {
+        const key = `${shoot.id}-${formatAlarmTime(shoot)}`;
+        if (!fired[key] && Date.now() >= reminderDate(shoot).getTime()) {
+          fired[key] = true;
+          localStorage.setItem(firedKey, JSON.stringify(fired));
+          fireAlarm(shoot);
+        }
+      });
+    }
+
+    function markAndFireAlarm(shoot) {
+      const fired = loadFired();
+      fired[`${shoot.id}-${formatAlarmTime(shoot)}`] = true;
+      localStorage.setItem(firedKey, JSON.stringify(fired));
+      fireAlarm(shoot);
+    }
+
+    async function fireAlarm(shoot) {
+      currentId = shoot.id;
+      const message = `【充电与排查提醒】明天的《${shoot.title}》需要开始准备了！请立刻给设备充电并完成清单排查！`;
+      await requestPermissions();
+      showSystemNotification(message);
+      alarmText.textContent = message;
+      alarmOverlay.classList.remove("hidden");
+      alarmOverlay.classList.add("grid");
+      startAlarmSound();
+    }
+
+    async function requestPermissions() {
+      if ("Notification" in window && Notification.permission === "default") {
+        try { await Notification.requestPermission(); } catch (error) {}
+      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") await audioCtx.resume();
+    }
+
+    function showSystemNotification(body) {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const title = "充电与排查提醒";
+      navigator.serviceWorker?.ready.then((reg) => {
+        reg.showNotification(title, { body, icon: "./icons/icon-192.svg", badge: "./icons/icon-192.svg", tag: "shoot-reminder", renotify: true });
+      }).catch(() => new Notification(title, { body, icon: "./icons/icon-192.svg" }));
+    }
+
+    function startAlarmSound() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      stopAlarmSound();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.0001;
+      gain.connect(audioCtx.destination);
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      osc1.type = "square";
+      osc1.frequency.value = 880;
+      osc2.type = "sine";
+      osc2.frequency.value = 1320;
+      osc1.connect(gain);
+      osc2.connect(gain);
+      osc1.start();
+      osc2.start();
+      const interval = setInterval(() => {
+        const now = audioCtx.currentTime;
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.22, now + .03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + .22);
+      }, 420);
+      alarmNodes = [osc1, osc2, gain, interval];
+    }
+
+    function stopAlarmSound() {
+      if (!alarmNodes.length) return;
+      clearInterval(alarmNodes[3]);
+      alarmNodes.slice(0, 2).forEach((osc) => { try { osc.stop(); } catch (error) {} });
+      alarmNodes = [];
+    }
+
+    function stopAlarmAndOverlay() {
+      stopAlarmSound();
+      alarmOverlay.classList.add("hidden");
+      alarmOverlay.classList.remove("grid");
+    }
+
+    function openDrawer() { document.body.classList.add("drawer-open"); }
+    function closeDrawer() { document.body.classList.remove("drawer-open"); renderList(); }
+    function getCurrent() { return shoots.find((shoot) => shoot.id === currentId); }
+    function getGearProgress(shoot) {
+      const all = [...(shoot?.charge || []), ...(shoot?.pack || [])];
+      const done = all.filter((item) => item.done).length;
+      return { total: all.length, done, percent: all.length ? Math.round(done / all.length * 100) : 0 };
+    }
+    function reminderDate(shoot) {
+      const date = new Date(`${shoot.date}T20:00:00`);
+      date.setDate(date.getDate() - 1);
+      return date;
+    }
+    function formatAlarmTime(shoot) {
+      const date = reminderDate(shoot);
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} 20:00`;
+    }
+    function formatDate(date) { return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`; }
+    function metric(value, label) { return `<div class="rounded-lg bg-stone-50 py-3"><p class="text-base font-black text-stone-900">${value}</p><p class="mt-1 text-[11px] text-stone-500">${label}</p></div>`; }
+    function input(label, name, placeholder, type, value = "") {
+      return `<label class="block text-xs font-bold text-stone-500">${label}<input class="field mt-1" name="${name}" type="${type}" value="${value}" placeholder="${placeholder}" required></label>`;
+    }
+    function mockWeather() {
+      const wind = rand(7, 20);
+      const rain = rand(8, 62);
+      return { temp: rand(24, 32), rain, wind, cloud: rand(20, 75), risk: wind > 15 || rain > 50 ? "中" : "低" };
+    }
+    function loadShoots() {
+      try { return JSON.parse(localStorage.getItem(storeKey)) || defaultShoots; } catch (error) { return defaultShoots; }
+    }
+    function saveShoots(resetTimers = true) {
+      localStorage.setItem(storeKey, JSON.stringify(shoots));
+      if (resetTimers) scheduleReminders();
+    }
+    function loadFired() {
+      try { return JSON.parse(localStorage.getItem(firedKey)) || {}; } catch (error) { return {}; }
+    }
+    function setupInstallGuide() {
+      const guide = $("#installGuide");
+      const text = $("#installText");
+      const btn = $("#installBtn");
+      const ua = navigator.userAgent.toLowerCase();
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+      if (standalone) return;
+      guide.classList.remove("hidden");
+      if (/iphone|ipad|ipod/.test(ua)) text.textContent = "点 Safari 底部分享按钮，再选“添加到主屏幕”。";
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredPrompt = event;
+        btn.classList.remove("hidden");
+        text.textContent = "点击右侧按钮，即可安装成桌面 App。";
+      });
+      btn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        btn.classList.add("hidden");
+      });
+    }
+    function registerPwa() {
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+      }
+    }
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+    function nextDate(days) {
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+    function uid() { return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function pad(value) { return String(value).padStart(2, "0"); }
+    function clean(value) { return String(value || "").trim(); }
+    function escapeHtml(value) { return String(value).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m])); }
+    function escapeAttr(value) { return escapeHtml(value).replace(/`/g, "&#096;"); }
+  </script>
+</body>
+</html>
