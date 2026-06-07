@@ -293,16 +293,16 @@
       const w = shoot.weather, advice = w.wind > 15 ? "风速偏高，三脚架加配重，无人机等风稳后再飞。" : w.rain > 50 ? "降雨概率偏高，带防水袋，并准备室内备用机位。" : "自然条件稳定，适合优先拍逆光氛围镜头和人物特写。";
       return `<section class="paper-card"><div class="between"><div class="section-title">天气判断与自然条件</div><span class="badge purple-text">风险：${w.risk}</span></div><div class="grid-4" style="margin-top:14px;">${metric(`${w.temp}°C`, "温度")}${metric(`${w.rain}%`, "降雨")}${metric(`${w.wind}`, "风速")}${metric(`${w.cloud}%`, "云量")}</div><div class="text-sm mini-stack" style="margin-top:14px;"><p><b>Sunrise/Sunset：</b>06:02 / 19:08</p><p><b>Golden Hour：</b>06:10-07:05，18:12-19:02</p><p><b>Blue Hour：</b>05:35-05:58，19:12-19:38</p></div><p class="text-sm" style="margin:14px 0 0;">AI增强拍摄建议：${advice}</p></section>`;
     }
-    function storyboardPanel(shoot) { return `<div class="stack"><section class="paper-card"><div class="between"><div class="section-title">🎬 创意纯分镜计划</div><span class="badge purple-text">${shoot.storyboards.length}个</span></div></section><div id="storyboardList" class="stack">${shoot.storyboards.map(storyboardCard).join("")}</div><button id="addStoryboardBtn" class="paper-btn white-btn" style="width:100%;">➕ 添加新分镜</button></div>`; }
+    function storyboardPanel(shoot) { return `<div class="stack"><section class="paper-card"><div class="between"><div class="section-title">🎬 创意纯分镜计划</div><span class="badge purple-text" data-storyboard-count>${shoot.storyboards.length}个</span></div></section><div id="storyboardList" class="stack">${shoot.storyboards.map(storyboardCard).join("")}</div><button id="addStoryboardBtn" class="paper-btn white-btn" style="width:100%;">➕ 添加新分镜</button></div>`; }
     function storyboardCard(item, index) {
       return `<article class="paper-card"><div class="between"><div class="section-title">分镜 #${index + 1}</div><button class="paper-btn white-btn delete-btn" data-delete-board="${item.id}" title="删除">🗑</button></div><div class="grid-2" style="margin-top:12px;"><label class="tiny">景别<select class="field" data-id="${item.id}" data-board-field="shot" style="margin-top:6px;">${["特写","近景","中景","远景","全景"].map((name) => `<option ${item.shot === name ? "selected" : ""}>${name}</option>`).join("")}</select></label><label class="tiny">运镜<input class="field" data-id="${item.id}" data-board-field="move" value="${escapeAttr(item.move)}" placeholder="推、拉、摇、移、跟" style="margin-top:6px;"></label></div><label class="tiny" style="display:block; margin-top:12px;">画面描述<textarea class="field" data-id="${item.id}" data-board-field="text" placeholder="记录镜头画面、台词或演员走位" style="min-height:110px; margin-top:6px;">${escapeHtml(item.text)}</textarea></label></article>`;
     }
     function gearPanel(shoot) {
       const progress = getGearProgress(shoot);
-      return `<div class="stack"><section class="paper-card"><div class="between"><div><div class="section-title">🎒 明日装备与道具排查</div><div class="tiny muted">检查进度：${progress.done}/${progress.total}</div></div><span class="badge purple-text">${progress.percent}%</span></div><div class="progress-track" style="margin-top:14px;"><div class="progress-bar" style="width:${progress.percent}%"></div></div>${progress.percent === 100 ? `<div class="paper-card text-sm" style="margin-top:14px; background:#d8c7a7;">☑️ 装备道具已全部带齐，无遗漏！</div>` : ""}</section>${gearGroup("🔋 前夜20:00充电清单", "charge", shoot.charge)}${gearGroup("🎒 出发前打包清点", "pack", shoot.pack)}<button id="readyBtn" class="paper-btn purple-btn ready-breath" style="width:100%; min-height:64px; font-size:18px;">✨ 确认全部准备就绪！</button></div>`;
+      return `<div class="stack"><section class="paper-card"><div class="between"><div><div class="section-title">🎒 明日装备与道具排查</div><div class="tiny muted" data-gear-count>检查进度：${progress.done}/${progress.total}</div></div><span class="badge purple-text" data-gear-percent>${progress.percent}%</span></div><div class="progress-track" style="margin-top:14px;"><div class="progress-bar" data-gear-bar style="width:${progress.percent}%"></div></div><div class="paper-card text-sm" data-gear-success style="margin-top:14px; background:#d8c7a7; ${progress.percent === 100 ? "" : "display:none;"}">☑️ 装备道具已全部带齐，无遗漏！</div></section>${gearGroup("🔋 前夜20:00充电清单", "charge", shoot.charge)}${gearGroup("🎒 出发前打包清点", "pack", shoot.pack)}<button id="readyBtn" class="paper-btn purple-btn ready-breath" style="width:100%; min-height:64px; font-size:18px;">✨ 确认全部准备就绪！</button></div>`;
     }
     function gearGroup(title, group, items) {
-      return `<section class="paper-card stack"><div class="section-title">${title}</div><div class="mini-stack">${items.map((item) => `<button class="paper-card between" style="width:100%; text-align:left; padding:12px;" data-toggle-item="${item.id}" data-group="${group}"><span class="badge" style="${item.done ? "background:#e8c1cd; color:#5e5a56;" : ""}">✓</span><span class="text-sm ${item.done ? "checked-text" : ""}" style="flex:1;">${escapeHtml(item.text)}</span></button>`).join("")}</div><form class="row" data-add-item="${group}"><input class="field" placeholder="添加自定义条目" style="min-width:0; flex:1;"><button class="paper-btn purple-btn delete-btn">＋</button></form></section>`;
+      return `<section class="paper-card stack"><div class="section-title">${title}</div><div class="mini-stack">${items.map((item) => `<button class="paper-card between" style="width:100%; text-align:left; padding:12px;" data-toggle-item="${item.id}" data-group="${group}"><span class="badge" data-check-mark style="${item.done ? "background:#e8c1cd; color:#5e5a56;" : ""}">✓</span><span class="text-sm ${item.done ? "checked-text" : ""}" data-item-text style="flex:1;">${escapeHtml(item.text)}</span></button>`).join("")}</div><form class="row" data-add-item="${group}"><input class="field" placeholder="添加自定义条目" style="min-width:0; flex:1;"><button class="paper-btn purple-btn delete-btn">＋</button></form></section>`;
     }
     function inspirationPanel(shoot) {
       ensureInspiration(shoot);
@@ -312,16 +312,81 @@
       $("[data-close]", $("#drawerContent"))?.addEventListener("click", closeDrawer);
       $$("[data-tab]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { activeTab = button.dataset.tab; openDetail(currentId); }));
       $("#readyBtn")?.addEventListener("click", () => { const progress = getGearProgress(getCurrent()); if (progress.percent < 100) return showToast("您的清单还没排查完哦，先检查一下吧～"); $("#readyModal").classList.add("show"); });
-      $("#addStoryboardBtn")?.addEventListener("click", () => { const shoot = getCurrent(); shoot.storyboards.push({ id: uid(), shot: "中景", move: "", text: "" }); saveShoots(); openDetail(shoot.id); });
-      $$("[data-delete-board]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { const shoot = getCurrent(); if (shoot.storyboards.length <= 1) return showToast("至少保留一个分镜。"); shoot.storyboards = shoot.storyboards.filter((item) => item.id !== button.dataset.deleteBoard); saveShoots(); openDetail(shoot.id); }));
-      $$("[data-board-field]", $("#drawerContent")).forEach((field) => field.addEventListener("input", () => { const shoot = getCurrent(), item = shoot.storyboards.find((board) => board.id === field.dataset.id); if (!item) return; item[field.dataset.boardField] = field.value; saveShoots(false); }));
-      $$("[data-toggle-item]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { const shoot = getCurrent(), item = shoot[button.dataset.group].find((entry) => entry.id === button.dataset.toggleItem); if (!item) return; item.done = !item.done; saveShoots(); openDetail(shoot.id); renderList(); }));
+      $("#addStoryboardBtn")?.addEventListener("click", () => {
+        const shoot = getCurrent();
+        const item = { id: uid(), shot: "中景", move: "", text: "" };
+        shoot.storyboards.push(item);
+        saveShoots(false);
+        const list = $("#storyboardList");
+        if (!list) return openDetail(shoot.id);
+        list.insertAdjacentHTML("beforeend", storyboardCard(item, shoot.storyboards.length - 1));
+        const newCard = list.lastElementChild;
+        bindStoryboardCardEvents(newCard);
+        const count = $("[data-storyboard-count]", $("#drawerContent"));
+        if (count) count.textContent = `${shoot.storyboards.length}个`;
+        newCard?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+      $$("[data-delete-board]", $("#drawerContent")).forEach((button) => bindDeleteBoardButton(button));
+      $$("[data-board-field]", $("#drawerContent")).forEach((field) => bindBoardField(field));
+      $$("[data-toggle-item]", $("#drawerContent")).forEach((button) => bindGearToggle(button));
       $$("[data-add-item]", $("#drawerContent")).forEach((form) => form.addEventListener("submit", (event) => { event.preventDefault(); const shoot = getCurrent(), input = $("input", form), text = clean(input.value); if (!text) return; shoot[form.dataset.addItem].push({ id: uid(), text, done: false }); saveShoots(); openDetail(shoot.id); }));
       $("#poseNotes")?.addEventListener("input", (event) => { const shoot = getCurrent(); ensureInspiration(shoot); shoot.inspiration.pose = event.target.value; saveShoots(false); });
       $("#paramNotes")?.addEventListener("input", (event) => { const shoot = getCurrent(); ensureInspiration(shoot); shoot.inspiration.params = event.target.value; saveShoots(false); });
       $$("[data-color-index]", $("#drawerContent")).forEach((input) => input.addEventListener("input", () => { const shoot = getCurrent(), value = normalizeHex(input.value); if (!value) return; shoot.inspiration.colors[Number(input.dataset.colorIndex)] = value; saveShoots(false); const chip = input.parentElement?.parentElement?.querySelector(".color-chip"); if (chip) chip.style.background = value; }));
       $$("[data-delete-color]", $("#drawerContent")).forEach((button) => button.addEventListener("click", () => { const shoot = getCurrent(); if (shoot.inspiration.colors.length <= 1) return showToast("至少保留一个色块。"); shoot.inspiration.colors.splice(Number(button.dataset.deleteColor), 1); saveShoots(); openDetail(shoot.id); }));
       $("#addColorBtn")?.addEventListener("click", () => { const shoot = getCurrent(); if (shoot.inspiration.colors.length >= 5) return showToast("最多添加5个色块。"); shoot.inspiration.colors.push(["#e8c1cd", "#f4e5ea", "#fffaf0", "#d7a8b8", "#5e5a56"][shoot.inspiration.colors.length] || "#e8c1cd"); saveShoots(); openDetail(shoot.id); });
+    }
+    function bindStoryboardCardEvents(card) {
+      if (!card) return;
+      const deleteButton = $("[data-delete-board]", card);
+      if (deleteButton) bindDeleteBoardButton(deleteButton);
+      $$("[data-board-field]", card).forEach((field) => bindBoardField(field));
+    }
+    function bindDeleteBoardButton(button) {
+      button.addEventListener("click", () => {
+        const shoot = getCurrent();
+        if (shoot.storyboards.length <= 1) return showToast("至少保留一个分镜。");
+        shoot.storyboards = shoot.storyboards.filter((item) => item.id !== button.dataset.deleteBoard);
+        saveShoots(false);
+        openDetail(shoot.id);
+      });
+    }
+    function bindBoardField(field) {
+      field.addEventListener("input", () => {
+        const shoot = getCurrent();
+        const item = shoot.storyboards.find((board) => board.id === field.dataset.id);
+        if (!item) return;
+        item[field.dataset.boardField] = field.value;
+        saveShoots(false);
+      });
+    }
+    function bindGearToggle(button) {
+      button.addEventListener("click", () => {
+        const shoot = getCurrent();
+        const item = shoot[button.dataset.group].find((entry) => entry.id === button.dataset.toggleItem);
+        if (!item) return;
+        item.done = !item.done;
+        saveShoots(false);
+        updateGearRow(button, item.done);
+        updateGearProgress(shoot);
+      });
+    }
+    function updateGearRow(row, done) {
+      const check = $("[data-check-mark]", row);
+      const text = $("[data-item-text]", row);
+      if (check) check.style.cssText = done ? "background:#e8c1cd; color:#5e5a56;" : "";
+      if (text) text.classList.toggle("checked-text", done);
+    }
+    function updateGearProgress(shoot) {
+      const progress = getGearProgress(shoot);
+      const count = $("[data-gear-count]", $("#drawerContent"));
+      const percent = $("[data-gear-percent]", $("#drawerContent"));
+      const bar = $("[data-gear-bar]", $("#drawerContent"));
+      const success = $("[data-gear-success]", $("#drawerContent"));
+      if (count) count.textContent = `检查进度：${progress.done}/${progress.total}`;
+      if (percent) percent.textContent = `${progress.percent}%`;
+      if (bar) bar.style.width = `${progress.percent}%`;
+      if (success) success.style.display = progress.percent === 100 ? "" : "none";
     }
     function renderCountdownOnly() { const el = $("#countdown"), shoot = getCurrent(); if (!el || !shoot) return; const diff = new Date(`${shoot.date}T${shoot.startTime}:00`).getTime() - Date.now(); if (diff <= 0) return el.textContent = "00:00:00"; const d = Math.floor(diff / 86400000), h = Math.floor(diff % 86400000 / 3600000), m = Math.floor(diff % 3600000 / 60000), s = Math.floor(diff % 60000 / 1000); el.textContent = d > 0 ? `${d}天 ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`; }
     function scheduleReminders() { alarmTimers.forEach(clearTimeout); alarmTimers = []; shoots.forEach((shoot) => { const delay = reminderDate(shoot).getTime() - Date.now(); if (delay > 0 && delay < 2147483647) alarmTimers.push(setTimeout(() => markAndFireAlarm(shoot), delay)); }); }
